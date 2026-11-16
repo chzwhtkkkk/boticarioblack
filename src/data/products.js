@@ -1265,7 +1265,8 @@ export const products = [
     reviews: 342,
     discount: 75,
     originalPrice: 210.90
-  }
+  },
+  
   // NOVOS PRODUTOS NATAL 2026
   {
     id: 80,
