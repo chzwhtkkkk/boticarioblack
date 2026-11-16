@@ -1337,7 +1337,7 @@ export const products = [
     name: 'Kit Presente Cuide-se Bem Deleite (4 itens) O Boticário',
     category: 'Kits e Presentes',
     price: 41.60,
-    image: '/images/black26/D_NQ_NP_2X_754901-MLB118676520563_102026-F-kit-presente-cuidese-bem-deleite-.webp',
+    image: '/images/black26/D_NQ_NP_2X_754901-MLB118676520563_102026-F-kit-presente-cuidese-bem-deleite-4-itens-o-boticario 2.webp',
     video: null,
     description: 'Kit Presente Natal Cuide-Se Bem Deleite vem com quatro itens com a fragrância queridinha, embalados em uma caixa especial. A fragrância gourmand traz um delicioso conforto para ser usado todos os dias. Contém: Body Splash Cuide-Se Bem Deleite 200ml, Hidratante Para as Mãos Cuide-Se Bem Deleite 45g, Loção Hidratante Desodorante Corporal Cuide-Se Bem Deleite 100ml e Sabonete Líquido Cuide-se Bem Deleite 50ml. Hidratação de até 48 horas e perfumação prolongada.',
     stock: 50,
