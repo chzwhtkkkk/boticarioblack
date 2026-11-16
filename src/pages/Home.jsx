@@ -12,6 +12,9 @@ const Home = () => {
   // Novos produtos Black Friday 2024 (IDs 58-79) - reutilizando os produtos existentes
   const blackFridayProductsRaw = products.filter(p => p.id >= 58 && p.id <= 79)
   
+  // Produtos Natal 2026 (IDs 80-84)
+  const natalProducts = products.filter(p => p.id >= 80 && p.id <= 84)
+  
   // Ordem específica dos produtos mais vendidos
   const blackFridayOrder = [61, 64, 62, 65, 76, 59, 77, 66, 67, 40] // Her Code, Malbec X, Floratta Red, Lily, Arabian Oasis, Coffee Woman, Egeo Dolce, Quasar Vision, Egeo Bomb, Malbec X Kit
   
@@ -24,6 +27,7 @@ const Home = () => {
   const [showAllPerfumes, setShowAllPerfumes] = useState(false)
   const [showAllBlackFriday, setShowAllBlackFriday] = useState(false)
   const [showAllOtherKits, setShowAllOtherKits] = useState(false)
+  const [showAllNatal, setShowAllNatal] = useState(false)
   const displayedPerfumes = showAllPerfumes ? perfumes : perfumes.slice(0, 4)
 
   // Estado do carrossel de banners
@@ -166,6 +170,51 @@ const Home = () => {
                 </svg>
               </Link>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* KITS NATAL 2026 - NOVA SEÇÃO */}
+      <section className="py-6 md:py-8 bg-gradient-to-br from-red-50 via-green-50 to-red-50">
+        <div className="container mx-auto px-4">
+          {/* Título com Veja Mais */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg md:text-xl font-bold text-gray-900">
+              🎄 NATAL 2026 | Presentes Especiais para Quem Você Ama
+            </h2>
+            <Link to="/produtos" className="text-sm text-gray-600 hover:text-red-700 flex items-center gap-1">
+              Veja Mais
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+
+          {/* Badge Especial Natal */}
+          <div className="mb-4 text-center">
+            <span className="inline-block bg-gradient-to-r from-red-600 to-green-600 text-white px-6 py-2 rounded-full font-bold text-sm animate-pulse">
+              ✨ Lançamento Natal 2026 | Até 81% OFF
+            </span>
+          </div>
+
+          {/* Grid de Produtos NATAL 2026 - 2 colunas no mobile */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+            {natalProducts.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          {/* Ver produtos link */}
+          <div className="text-center mt-4">
+            <Link 
+              to="/produtos" 
+              className="inline-flex items-center gap-2 text-red-700 font-medium hover:underline"
+            >
+              Ver todos os produtos de Natal
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
           </div>
         </div>
       </section>
