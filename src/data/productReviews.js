@@ -512,7 +512,7 @@ export const productReviews = {
       comment: 'Produto maravilhoso! Fragrância marcante e duradoura. A loção deixa a pele hidratada. Muito bom!',
       verified: true
     }
-  },
+  ],
 
   99: [ // Kit Nativa Spa Jasmim Sambac 2 itens
     {
@@ -593,7 +593,7 @@ export const productReviews = {
       comment: 'Produto de qualidade! Perfume marcante e elegante. Body spray muito prático. Boticollection é top!',
       verified: true
     }
-  },
+  ],
 
   102: [ // Arbo Kit 2 Itens
     {
@@ -620,7 +620,7 @@ export const productReviews = {
       comment: 'Perfume top! Fragrância aromática e revigorante. Body spray de qualidade. Melhor custo-benefício!',
       verified: true
     }
-  },
+  ],
 
   103: [ // Nativa Spa Uva Merlot 2 Itens
     {
@@ -647,7 +647,7 @@ export const productReviews = {
       comment: 'Produto premium! Uva Merlot tem cheiro sofisticado. A loção deixa a pele firme e macia. Melhor kit!',
       verified: true
     }
-  },
+  ],
 
   104: [ // Kit Egeo Dolce
     {
@@ -674,7 +674,7 @@ export const productReviews = {
       comment: 'Maravilhoso! Egeo Dolce é o perfume mais gostoso. O creme potencializa a fragrância. Super recomendo!',
       verified: true
     }
-  },
+  ],
 
   105: [ // Kit Malbec Eau De Parfum 3 itens
     {
@@ -701,7 +701,7 @@ export const productReviews = {
       comment: 'Sensacional! Malbec EDP é o top da linha. Cheiro amadeirado sofisticado. Loção e body spray excelentes!',
       verified: true
     }
-  },
+  ],
 
   106: [ // Kit Her Code 2 itens
     {
@@ -728,7 +728,7 @@ export const productReviews = {
       comment: 'Produto incrível! Cheiro marcante e sensual. O perfume sólido tem toque seco. Melhor kit feminino!',
       verified: true
     }
-  },
+  ],
 
   107: [ // Kit Liz Tradicional 3 itens
     {
