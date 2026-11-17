@@ -3,8 +3,10 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { products } from '../data/products'
 import { productDetails } from '../data/productDetails'
 import { productGalleries } from '../data/productGalleries'
+import { productReviews } from '../data/productReviews'
 import { useCart } from '../context/CartContext'
 import ProductGallery from '../components/ProductGallery'
+import CustomerReviews from '../components/CustomerReviews'
 import { trackViewContent, trackAddToCart } from '../services/utmify'
 import * as metaPixel from '../services/metaPixel'
 import { formatPrice } from '../utils/formatPrice'
@@ -23,6 +25,12 @@ const ProductDetail = () => {
   const product = products.find(p => p.id === parseInt(id))
   const details = productDetails[parseInt(id)]
   const gallery = productGalleries[parseInt(id)]
+  const reviews = productReviews[parseInt(id)] || []
+
+  // Debug - remover depois
+  console.log('Product ID:', parseInt(id))
+  console.log('Reviews found:', reviews.length)
+  console.log('Reviews data:', reviews)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -708,6 +716,13 @@ const ProductDetail = () => {
           )}
         </div>
       </div>
+
+      {/* Customer Reviews */}
+      {reviews.length > 0 && (
+        <div className="container mx-auto px-4 py-12">
+          <CustomerReviews productId={parseInt(id)} reviews={reviews} />
+        </div>
+      )}
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (
