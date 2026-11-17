@@ -566,7 +566,7 @@ export const productReviews = {
       comment: 'Produto top! Liz Sublime é sofisticado e elegante. Kit bem montado, embalagem linda. Recomendo!',
       verified: true
     }
-  },
+  ],
 
   101: [ // Kit Portinari 2 itens
     {
