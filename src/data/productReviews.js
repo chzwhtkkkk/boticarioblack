@@ -539,7 +539,7 @@ export const productReviews = {
       comment: 'Produtos excelentes! Jasmim Sambac tem propriedades anti-stress. A loção com quinoa é maravilhosa. Recomendo!',
       verified: true
     }
-  },
+  ],
 
   100: [ // Kit Liz Sublime 2 itens
     {
