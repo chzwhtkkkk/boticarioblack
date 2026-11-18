@@ -1,126 +1,206 @@
-import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import Head from 'next/head';
 
-const Rastreio = () => {
-  const [searchParams] = useSearchParams()
-  const codigo = searchParams.get('codigo')
-  const [trackingCode, setTrackingCode] = useState(codigo || '')
+export default function Rastreio() {
+  const router = useRouter();
+  const { codigo } = router.query;
 
-  const handleTrack = (e) => {
-    e.preventDefault()
-    if (trackingCode.trim()) {
-      // Redireciona para WhatsApp com o código de rastreio
-      const message = `Olá! Gostaria de rastrear meu pedido. Código: ${trackingCode}`
-      window.open(`https://wa.me/5511951947983?text=${encodeURIComponent(message)}`, '_blank')
+  useEffect(() => {
+    // Configurar o widget do DiaLOG
+    if (typeof window !== 'undefined') {
+      window.DiaLOGTrackingConfig = {
+        containerId: "dialog-tracking-widget",
+        primaryColor: "#db2777", // Rosa do Boticário
+        title: "Rastreie seu Pedido",
+        subtitle: "Digite o código de rastreio para acompanhar sua encomenda em tempo real."
+      };
+
+      // Carregar o script do DiaLOG
+      const script = document.createElement('script');
+      script.src = 'https://acompanhar.my-trackcode.online/widget/tracking-widget.js';
+      script.defer = true;
+      script.onerror = function() {
+        // Fallback se o script principal falhar
+        this.onerror = null;
+        const fallbackScript = document.createElement('script');
+        fallbackScript.src = 'https://dnpgrcriaqpcybhzikvh.supabase.co/functions/v1/tracking-widget';
+        fallbackScript.defer = true;
+        fallbackScript.onerror = function() {
+          console.error('[DiaLOG] Widget indisponível.');
+          const container = document.getElementById('dialog-tracking-widget');
+          if (container) {
+            container.innerHTML = `
+              <div style="padding:24px;text-align:center;font-family:sans-serif;color:#6b7280;border:1px dashed #e5e7eb;border-radius:12px">
+                Widget de rastreio temporariamente indisponível.
+              </div>
+            `;
+          }
+        };
+        document.head.appendChild(fallbackScript);
+      };
+      document.head.appendChild(script);
+
+      return () => {
+        // Cleanup: remover scripts quando componente desmontar
+        script.remove();
+      };
     }
-  }
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 py-12">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
+    <>
+      <Head>
+        <title>Rastreamento de Pedido - O Boticário</title>
+        <meta name="description" content="Rastreie seu pedido O Boticário em tempo real" />
+      </Head>
+
+      <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white py-12">
+        <div className="max-w-4xl mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              📦 Rastreamento de Pedido
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">
+              Rastreamento de Pedido
             </h1>
-            <p className="text-xl text-gray-600">
-              Acompanhe sua encomenda em tempo real
+            <p className="text-gray-600 text-lg">
+              Acompanhe seu pedido em tempo real
             </p>
           </div>
 
-          {/* Formulário de Rastreio */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <form onSubmit={handleTrack} className="space-y-6">
-              <div>
-                <label htmlFor="tracking-code" className="block text-lg font-semibold text-gray-900 mb-3">
-                  Digite seu código de rastreio:
-                </label>
-                <input
-                  id="tracking-code"
-                  type="text"
-                  value={trackingCode}
-                  onChange={(e) => setTrackingCode(e.target.value)}
-                  placeholder="Ex: BR123456789BR"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-[#246c61] focus:border-transparent"
-                  required
-                />
-              </div>
-              
-              <button
-                type="submit"
-                className="w-full bg-[#246c61] hover:bg-[#1d5850] text-white font-bold py-4 px-6 rounded-lg transition-all text-lg flex items-center justify-center gap-3"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Rastrear Pedido
-              </button>
-            </form>
+          {/* Widget do DiaLOG */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <div id="dialog-tracking-widget"></div>
+          </div>
 
-            {/* Informação sobre o rastreamento */}
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800 text-center">
-                💬 Ao clicar em "Rastrear Pedido", você será direcionado para nosso WhatsApp onde nossa equipe irá fornecer todas as informações sobre sua entrega.
-              </p>
+          {/* Informações Adicionais */}
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Como funciona o rastreamento?
+            </h2>
+            
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
+                    <span className="text-pink-600 font-bold text-lg">1</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Código de Rastreio</h3>
+                  <p className="text-gray-600">
+                    Você recebeu um código de rastreio por email após a confirmação do pagamento.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
+                    <span className="text-pink-600 font-bold text-lg">2</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Digite o Código</h3>
+                  <p className="text-gray-600">
+                    Cole ou digite o código de rastreio no campo acima para acompanhar seu pedido.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
+                    <span className="text-pink-600 font-bold text-lg">3</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Acompanhe em Tempo Real</h3>
+                  <p className="text-gray-600">
+                    Veja todas as atualizações da sua encomenda, desde a postagem até a entrega.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Informações adicionais */}
-          <div className="mt-8 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-            <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Como rastrear seu pedido:
-            </h3>
-            <ol className="space-y-3 text-gray-700">
-              <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                <span>Digite o <strong>código de rastreio</strong> que você recebeu por email</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                <span>Clique em <strong>"Rastrear"</strong></span>
-              </li>
-              <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                <span>Nossa equipe irá fornecer o status atualizado da sua entrega via WhatsApp</span>
-              </li>
-            </ol>
+          {/* FAQ */}
+          <div className="mt-8 bg-white rounded-2xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Perguntas Frequentes
+            </h2>
+            
+            <div className="space-y-4">
+              <details className="group">
+                <summary className="font-semibold text-gray-900 cursor-pointer list-none flex items-center justify-between py-3 border-b">
+                  <span>Não recebi meu código de rastreio</span>
+                  <svg className="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <p className="text-gray-600 py-3">
+                  O código de rastreio é enviado por email após a confirmação do pagamento e postagem do pedido. 
+                  Isso pode levar de 1 a 3 dias úteis. Verifique sua caixa de spam ou entre em contato conosco.
+                </p>
+              </details>
+
+              <details className="group">
+                <summary className="font-semibold text-gray-900 cursor-pointer list-none flex items-center justify-between py-3 border-b">
+                  <span>Meu código não está funcionando</span>
+                  <svg className="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <p className="text-gray-600 py-3">
+                  Certifique-se de digitar o código corretamente, sem espaços extras. 
+                  Se o problema persistir, pode ser que o pedido ainda não tenha sido postado. 
+                  Aguarde algumas horas e tente novamente.
+                </p>
+              </details>
+
+              <details className="group">
+                <summary className="font-semibold text-gray-900 cursor-pointer list-none flex items-center justify-between py-3 border-b">
+                  <span>Quanto tempo leva para receber?</span>
+                  <svg className="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <p className="text-gray-600 py-3">
+                  O prazo de entrega varia de acordo com sua região e o método de envio escolhido. 
+                  Normalmente é de 5 a 15 dias úteis após a postagem. Você pode acompanhar a previsão 
+                  pelo código de rastreio.
+                </p>
+              </details>
+
+              <details className="group">
+                <summary className="font-semibold text-gray-900 cursor-pointer list-none flex items-center justify-between py-3 border-b">
+                  <span>Preciso estar em casa para receber?</span>
+                  <svg className="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <p className="text-gray-600 py-3">
+                  Sim, é necessário que alguém esteja no endereço para receber e assinar o pedido. 
+                  Se não houver ninguém, os Correios deixarão um aviso para você retirar na agência ou 
+                  reagendar a entrega.
+                </p>
+              </details>
+            </div>
           </div>
 
-          {/* Dúvidas */}
-          <div className="mt-6 text-center">
-            <p className="text-gray-600 mb-4">
-              Não recebeu o código de rastreio?
-            </p>
-            <a
-              href={`https://wa.me/5511951947983?text=${encodeURIComponent('Olá! Não recebi o código de rastreio do meu pedido. Pode me ajudar?')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all"
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-              </svg>
-              Falar no WhatsApp
-            </a>
-          </div>
-
-          {/* Voltar para loja */}
+          {/* Botão Voltar */}
           <div className="mt-8 text-center">
-            <a
-              href="/"
-              className="text-gray-600 hover:text-gray-900 font-medium transition"
+            <button
+              onClick={() => router.push('/')}
+              className="inline-flex items-center gap-2 bg-pink-600 text-white px-8 py-3 rounded-lg hover:bg-pink-700 font-medium transition-colors"
             >
-              ← Voltar para a Loja
-            </a>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Voltar para a Loja
+            </button>
           </div>
         </div>
       </div>
-    </div>
-  )
+    </>
+  );
 }
-
-export default Rastreio
