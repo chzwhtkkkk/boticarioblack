@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { useRouter } from 'next/router';
-import Head from 'next/head';
+import { useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 
 export default function Rastreio() {
-  const router = useRouter();
-  const { codigo } = router.query;
+  const [searchParams] = useSearchParams();
+  const codigo = searchParams.get('codigo');
 
   useEffect(() => {
     // Configurar o widget do DiaLOG
@@ -50,10 +50,10 @@ export default function Rastreio() {
 
   return (
     <>
-      <Head>
+      <Helmet>
         <title>Rastreamento de Pedido - O Boticário</title>
         <meta name="description" content="Rastreie seu pedido O Boticário em tempo real" />
-      </Head>
+      </Helmet>
 
       <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white py-12">
         <div className="max-w-4xl mx-auto px-4">
