@@ -216,7 +216,23 @@ export default async function handler(req, res) {
 
     if (!avenpayResponse.ok) {
       console.error('❌ Erro Avenpay:', avenpayData);
-      throw new Error(avenpayData.message || avenpayData.error || 'Erro ao criar pagamento');
+      
+      // Erro 502 = problema no provedor de pagamento
+      if (avenpayResponse.status === 502) {
+        throw new Error('Erro no processador de pagamento. Verifique se sua conta Avenpay está ativa e configurada corretamente.');
+      }
+      
+      // Erro 401 = chave inválida
+      if (avenpayResponse.status === 401) {
+        throw new Error('Chave de API da Avenpay inválida ou expirada.');
+      }
+      
+      // Erro 403 = método não permitido
+      if (avenpayResponse.status === 403) {
+        throw new Error('Método de pagamento não permitido. Verifique se PIX está ativo na sua conta Avenpay.');
+      }
+      
+      throw new Error(avenpayData.message || avenpayData.error || `Erro ${avenpayResponse.status} ao criar pagamento`);
     }
 
     console.log('✅ Pagamento criado na Avenpay:', avenpayData.id);
