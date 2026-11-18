@@ -172,10 +172,13 @@ export default async function handler(req, res) {
           district: shipping.neighborhood,
           street: shipping.street,
           number: shipping.number,
-          zipCode: shipping.zipCode
+          zipCode: shipping.zipCode,
+          ...(shipping.complement && { complement: shipping.complement })
         }
       }
     };
+
+    console.log('💳 Payload Avenpay:', JSON.stringify(avenpayPayload, null, 2));
 
     // Se for cartão, adicionar token
     if (payment.method === 'CREDIT_CARD' && payment.cardToken) {
