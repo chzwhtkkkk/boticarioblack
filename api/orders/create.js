@@ -24,9 +24,27 @@ export default async function handler(req, res) {
   try {
     const { customer, items, shipping, payment } = req.body;
 
+    console.log('📦 Dados recebidos:', JSON.stringify(req.body, null, 2));
+
     // Validações básicas
-    if (!customer || !items || !shipping || !payment) {
-      return res.status(400).json({ error: 'Dados incompletos' });
+    if (!customer) {
+      console.error('❌ Customer faltando');
+      return res.status(400).json({ error: 'Dados incompletos: customer' });
+    }
+    
+    if (!items) {
+      console.error('❌ Items faltando');
+      return res.status(400).json({ error: 'Dados incompletos: items' });
+    }
+    
+    if (!shipping) {
+      console.error('❌ Shipping faltando');
+      return res.status(400).json({ error: 'Dados incompletos: shipping' });
+    }
+    
+    if (!payment) {
+      console.error('❌ Payment faltando');
+      return res.status(400).json({ error: 'Dados incompletos: payment' });
     }
 
     // Calcular valores
