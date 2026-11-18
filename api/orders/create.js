@@ -146,33 +146,33 @@ export default async function handler(req, res) {
     const avenpayPayload = {
       amount: total,
       currency: 'BRL',
-      paymentMethod: payment.method.toUpperCase(), // PIX, CREDIT_CARD, BOLETO
+      method: payment.method.toUpperCase(), // PIX, CREDIT_CARD, BOLETO
       description: `Pedido ${orderNumber}`,
-      externalReference: orderNumber,
+      externalRef: orderNumber,
       notificationUrl: `https://${req.headers.host}/api/webhooks/avenpay`,
-      customer: {
+      ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress || '',
+      payer: {
         name: customer.name,
-        document: customer.taxId,
+        taxId: customer.taxId,
         email: customer.email,
         phone: customer.phone
       },
       items: items.map(item => ({
-        title: item.name,
         quantity: item.quantity,
-        unitPrice: item.price,
-        tangible: true
+        name: item.name,
+        price: item.price,
+        type: 'PHYSICAL'
       })),
-      shipping: {
+      delivery: {
         fee: shippingFee,
         address: {
           country: 'BR',
           state: shipping.state,
           city: shipping.city,
-          neighborhood: shipping.neighborhood,
+          district: shipping.neighborhood,
           street: shipping.street,
-          streetNumber: shipping.number,
-          zipcode: shipping.zipCode,
-          complement: shipping.complement || ''
+          number: shipping.number,
+          zipCode: shipping.zipCode
         }
       }
     };
