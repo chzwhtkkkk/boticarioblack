@@ -152,89 +152,64 @@ const Checkout = () => {
     setIsProcessing(true)
 
     try {
-      const orderId = `ORD-${Date.now()}`
       const shippingPrice = getShippingPrice()
       const total = getTotalWithShipping()
       
-      const utmParams = getStoredUtms() || {}
-      const fbc = getFbcParam()
-      const fbp = getFbpParam()
-      
-      // Define o nome da opção de entrega
-      const shippingNames = {
-        'retirada': 'Retirada na Loja (24h)',
-        'gratis': 'Frete Grátis (3-6 dias)',
-        'expresso': 'Frete Expresso (1-3 dias)'
-      }
-      
+      // Formato que a API /api/orders/create espera
       const orderData = {
-        orderId,
-        total,
         customer: {
           name: formData.name.trim(),
           email: formData.email.trim(),
           phone: formData.phone.replace(/\D/g, ''),
-          taxId: formData.cpf.replace(/\D/g, ''),
-          address: formData.address.trim(),
+          taxId: formData.cpf.replace(/\D/g, '')
+        },
+        items: cart.map(item => ({
+          id: item.id,
+          productId: item.id,
+          name: item.name || item.title,
+          price: Math.round((item.price || item.salePrice) * 100), // centavos
+          quantity: item.quantity,
+          image: item.image
+        })),
+        shipping: {
+          zipCode: formData.cep.replace(/\D/g, ''),
+          street: formData.address.trim(),
           number: formData.number.trim(),
           complement: formData.complement.trim(),
           neighborhood: formData.neighborhood.trim(),
           city: formData.city.trim(),
           state: formData.state.trim().toUpperCase(),
-          cep: formData.cep.replace(/\D/g, '')
+          country: 'BR'
         },
-        utms: utmParams,
-        fbc,
-        fbp
+        payment: {
+          method: 'PIX'
+        }
       }
 
       const paymentResponse = await createPixPayment(orderData)
         
       if (!paymentResponse.success) {
-        throw new Error(paymentResponse.error || 'Erro ao gerar PIX')
+        throw new Error(paymentResponse.error || 'Erro ao gerar pagamento')
       }
 
-      const order = {
-        id: orderId,
-        paymentMethod: 'pix',
-        pixId: paymentResponse.data.transactionId,
-        customer: formData,
-        items: cart,
-        subtotal: getCartSubtotal(),
+      // Redirecionar para página de sucesso com dados do PIX
+      navigate('/pedido-confirmado', {
+        state: {
+          orderNumber: paymentResponse.orderNumber,
+          paymentData: paymentResponse.paymentData,
+          paymentMethod: 'pix'
+        }
+      })
+
+      clearCart()
         discount: getDiscount(),
         shipping: shippingPrice,
         shippingOption: shippingNames[shippingOption],
         total,
         date: new Date().toISOString(),
         status: 'pending',
-        pixData: paymentResponse.data
-      }
-
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-      orders.push(order)
-      localStorage.setItem('orders', JSON.stringify(orders))
-
-      trackInitiateCheckout(cart, total)
-
       clearCart()
-      setIsProcessing(false)
-      
-      navigate('/pedido-confirmado', {
-        state: {
-          orderId,
-          paymentMethod: 'pix',
-          pixId: paymentResponse.data.transactionId,
-          customerName: formData.name,
-          customerEmail: formData.email,
-          customerPhone: formData.phone,
-          items: cart,
-          total,
-          shipping: shippingPrice,
-          shippingOption: shippingNames[shippingOption],
-          shippingDays: shippingOption === 'retirada' ? 'Disponível em 24h' : shippingOption === 'expresso' ? '1-3 dias úteis' : '3-6 dias úteis',
-          pixData: paymentResponse.data
-        }
-      })
+
     } catch (error) {
       alert('Erro ao processar pedido: ' + error.message)
       setIsProcessing(false)
