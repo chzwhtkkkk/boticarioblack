@@ -16,6 +16,7 @@ const Checkout = () => {
     name: '',
     email: '',
     phone: '',
+    cpf: '',
     cep: '',
     address: '',
     number: '',
@@ -61,6 +62,11 @@ const Checkout = () => {
     return numbers.replace(/(\d{5})(\d{0,3})/, '$1-$2')
   }
 
+  const formatCpf = (value) => {
+    const numbers = value.replace(/\D/g, '')
+    return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4')
+  }
+
   const handleCepBlur = async () => {
     const cep = formData.cep.replace(/\D/g, '')
     
@@ -96,6 +102,8 @@ const Checkout = () => {
       value = formatPhone(value)
     } else if (name === 'cep') {
       value = formatCep(value)
+    } else if (name === 'cpf') {
+      value = formatCpf(value)
     } else if (name === 'state') {
       value = value.toUpperCase().slice(0, 2)
     }
@@ -123,6 +131,11 @@ const Checkout = () => {
     
     if (!formData.phone || formData.phone.replace(/\D/g, '').length < 10) {
       alert('Por favor, preencha um telefone válido com DDD.')
+      return
+    }
+    
+    if (!formData.cpf || formData.cpf.replace(/\D/g, '').length !== 11) {
+      alert('Por favor, preencha um CPF válido.')
       return
     }
     
@@ -161,7 +174,7 @@ const Checkout = () => {
           name: formData.name.trim(),
           email: formData.email.trim(),
           phone: formData.phone.replace(/\D/g, ''),
-          document: formData.phone.replace(/\D/g, ''),
+          taxId: formData.cpf.replace(/\D/g, ''),
           address: formData.address.trim(),
           number: formData.number.trim(),
           complement: formData.complement.trim(),
@@ -435,6 +448,23 @@ const Checkout = () => {
                   onChange={handleChange}
                   required
                   placeholder="(11) 99999-9999"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-base"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">CPF *</label>
+                <input
+                  type="text"
+                  name="cpf"
+                  value={formData.cpf}
+                  onChange={handleChange}
+                  required
+                  placeholder="000.000.000-00"
+                  maxLength="14"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-base"
+                />
+              </div>
                   maxLength="15"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-base"
                 />
