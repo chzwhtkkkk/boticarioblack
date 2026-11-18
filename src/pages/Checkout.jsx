@@ -202,13 +202,6 @@ const Checkout = () => {
       })
 
       clearCart()
-        discount: getDiscount(),
-        shipping: shippingPrice,
-        shippingOption: shippingNames[shippingOption],
-        total,
-        date: new Date().toISOString(),
-        status: 'pending',
-      clearCart()
 
     } catch (error) {
       alert('Erro ao processar pedido: ' + error.message)
