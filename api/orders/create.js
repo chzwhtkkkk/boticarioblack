@@ -197,11 +197,22 @@ export default async function handler(req, res) {
       body: JSON.stringify(avenpayPayload)
     });
 
-    const avenpayData = await avenpayResponse.json();
+    console.log('📡 Status Avenpay:', avenpayResponse.status);
+    
+    let avenpayData;
+    try {
+      avenpayData = await avenpayResponse.json();
+      console.log('📡 Resposta Avenpay:', JSON.stringify(avenpayData, null, 2));
+    } catch (parseError) {
+      console.error('❌ Erro ao fazer parse da resposta Avenpay:', parseError);
+      const responseText = await avenpayResponse.text();
+      console.error('❌ Resposta raw:', responseText);
+      throw new Error('Resposta inválida da API de pagamento');
+    }
 
     if (!avenpayResponse.ok) {
       console.error('❌ Erro Avenpay:', avenpayData);
-      throw new Error(avenpayData.message || 'Erro ao criar pagamento');
+      throw new Error(avenpayData.message || avenpayData.error || 'Erro ao criar pagamento');
     }
 
     console.log('✅ Pagamento criado na Avenpay:', avenpayData.id);
@@ -241,9 +252,12 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('❌ Erro ao criar pedido:', error);
+    console.error('❌ Stack:', error.stack);
     return res.status(500).json({
+      success: false,
       error: 'Erro ao processar pedido',
-      message: error.message
+      message: error.message,
+      details: error.toString()
     });
   }
 }
