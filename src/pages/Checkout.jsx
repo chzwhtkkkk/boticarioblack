@@ -465,10 +465,6 @@ const Checkout = () => {
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-base"
                 />
               </div>
-                  maxLength="15"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-base"
-                />
-              </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">CEP *</label>
