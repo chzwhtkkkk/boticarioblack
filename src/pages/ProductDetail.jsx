@@ -7,8 +7,7 @@ import { productReviews } from '../data/productReviews'
 import { useCart } from '../context/CartContext'
 import ProductGallery from '../components/ProductGallery'
 import CustomerReviews from '../components/CustomerReviews'
-import { trackViewContent, trackAddToCart } from '../services/utmify'
-import * as metaPixel from '../services/metaPixel'
+import { trackViewContent, trackAddToCart } from '../utils/tracking'
 import { formatPrice } from '../utils/formatPrice'
 
 const ProductDetail = () => {
@@ -36,7 +35,6 @@ const ProductDetail = () => {
     window.scrollTo(0, 0)
     if (product) {
       trackViewContent(product)
-      metaPixel.trackViewContent(product)
     }
   }, [id])
 
@@ -53,7 +51,6 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     trackAddToCart(product, quantity)
-    metaPixel.trackAddToCart(product, quantity)
     addToCart(product, quantity)
     // Redireciona DIRETO pro checkout
     navigate('/checkout')

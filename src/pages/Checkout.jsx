@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { createPixPayment } from '../services/pixApi'
-import { getStoredUtms } from '../services/utmManager'
-import { getFbcParam, getFbpParam, trackInitiateCheckout } from '../services/metaPixel'
+import { trackInitiateCheckout, trackPurchase, getUTMs, getSubids } from '../utils/tracking'
 import { formatPrice } from '../utils/formatPrice'
 import PromoCountdown from '../components/PromoCountdown'
 import SocialProofNotification from '../components/SocialProofNotification'
@@ -30,6 +29,13 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [shippingOption, setShippingOption] = useState('retirada') // retirada, gratis, expresso
   const [expressPrice] = useState((Math.random() * 8 + 1).toFixed(2)) // Preço aleatório entre 1.00 e 9.99
+
+  // Track InitiateCheckout quando entrar na página
+  useEffect(() => {
+    if (cart.length > 0) {
+      trackInitiateCheckout(cart, getCartTotal())
+    }
+  }, [])
 
   if (cart.length === 0) {
     navigate('/produtos')
