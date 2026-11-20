@@ -26,6 +26,7 @@ import MyOrdersNew from './pages/MyOrdersNew'
 import ExemploPix from './pages/ExemploPix'
 import ExemploPago from './pages/ExemploPago'
 import ExemploEnviando from './pages/ExemploEnviando'
+import Sucesso from './pages/Sucesso'
 import Admin from './pages/Admin'
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
               <Route path="/carrinho" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/pedido-confirmado" element={<OrderSuccess />} />
+              <Route path="/sucesso" element={<Sucesso />} />
               <Route path="/meus-pedidos" element={<MyOrders />} />
               <Route path="/area-cliente" element={<MyOrdersNew />} />
               <Route path="/exemplo-pix" element={<ExemploPix />} />

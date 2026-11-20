@@ -8,38 +8,90 @@ const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIs
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-// TODO: Adicionar credenciais da DiaLOG
-const DIALOG_API_KEY = process.env.DIALOG_API_KEY
-const DIALOG_API_URL = process.env.DIALOG_API_URL
+const DIALOG_WEBHOOK_URL = process.env.DIALOG_WEBHOOK_URL || 'https://dnpgrcriaqpcybhzikvh.supabase.co/functions/v1/webhook-checkout/universal/c688fd32-379c-425e-a8ad-cc600ad69539?token=d04d15b2b59f4363a9064194ecb413973e46cc80249b43318d6c72f0f9ce93ae'
 
-async function sendDialogEmail(orderData) {
-  // TODO: Integrar com DiaLOG quando tiver as credenciais
-  console.log('📧 Enviando email via DiaLOG:', orderData.customer.email)
+async function sendDialogTracking(orderData) {
+  console.log('📧 Enviando rastreio para DiaLOG:', orderData.order_id)
   
   try {
-    // Exemplo de chamada (ajustar conforme API da DiaLOG)
-    // const response = await fetch(DIALOG_API_URL, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${DIALOG_API_KEY}`,
-    //     'Content-Type': 'application/json'
-    //   },
-    //   body: JSON.stringify({
-    //     to: orderData.customer.email,
-    //     template_id: 'TEMPLATE_ID',
-    //     variables: {
-    //       order_number: orderData.order_number,
-    //       customer_name: orderData.customer.name,
-    //       tracking_code: orderData.tracking_code,
-    //       total: orderData.total
-    //     }
-    //   })
-    // })
+    const payload = {
+      order_id: orderData.order_id,
+      status: 'paid',
+      external_reference: orderData.order_id,
+      customer: {
+        name: orderData.customer.name,
+        email: orderData.customer.email,
+        phone: orderData.customer.phone,
+        document: orderData.customer.document
+      },
+      shipping_address: orderData.shipping_address || {
+        street: '',
+        number: '',
+        complement: '',
+        neighborhood: '',
+        city: '',
+        state: '',
+        zipcode: '',
+        country: 'BR'
+      },
+      products: orderData.products || [
+        {
+          name: 'Produto',
+          price: parseFloat(orderData.total),
+          quantity: 1,
+          weight: 0.5
+        }
+      ],
+      total: parseFloat(orderData.total)
+    }
+
+    console.log('📤 Payload DiaLOG:', JSON.stringify(payload, null, 2))
+
+    const response = await fetch(DIALOG_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+
+    const responseText = await response.text()
+    console.log('📥 Resposta DiaLOG:', response.status, responseText)
+
+    // Log do webhook no Supabase
+    try {
+      await supabase.from('dialog_webhook_logs').insert({
+        order_id: orderData.order_id,
+        status_code: response.status,
+        response_body: responseText,
+        sent_at: new Date().toISOString()
+      })
+    } catch (logError) {
+      console.error('⚠️ Erro ao logar webhook:', logError)
+    }
+
+    if (!response.ok) {
+      throw new Error(`DiaLOG retornou ${response.status}: ${responseText}`)
+    }
+
+    console.log('✅ Rastreio enviado para DiaLOG com sucesso!')
+    return { success: true, status: response.status, body: responseText }
     
-    console.log('✅ Email enviado com sucesso (simulado)')
-    return { success: true }
   } catch (error) {
-    console.error('❌ Erro ao enviar email:', error)
+    console.error('❌ Erro ao enviar para DiaLOG:', error)
+    
+    // Log do erro
+    try {
+      await supabase.from('dialog_webhook_logs').insert({
+        order_id: orderData.order_id,
+        status_code: 0,
+        response_body: JSON.stringify({ error: error.message }),
+        sent_at: new Date().toISOString()
+      })
+    } catch (logError) {
+      console.error('⚠️ Erro ao logar erro:', logError)
+    }
+    
     return { success: false, error: error.message }
   }
 }
@@ -156,11 +208,33 @@ export default async function handler(req, res) {
 
       if (itemError) console.error('⚠️ Erro ao criar order_items:', itemError)
 
-      // Enviar email via DiaLOG
-      await sendDialogEmail({
-        order_number: external_id,
-        tracking_code: trackingCode,
-        customer: customer,
+      // Enviar para DiaLOG Rastreios
+      await sendDialogTracking({
+        order_id: external_id,
+        customer: {
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          document: customer.document
+        },
+        shipping_address: address ? {
+          street: address.street || '',
+          number: address.number || '',
+          complement: address.complement || '',
+          neighborhood: address.neighborhood || '',
+          city: address.city || '',
+          state: address.state || '',
+          zipcode: address.zipcode || '',
+          country: 'BR'
+        } : null,
+        products: [
+          {
+            name: product?.name || 'Produto',
+            price: amount / 100,
+            quantity: 1,
+            weight: 0.5
+          }
+        ],
         total: (amount / 100).toFixed(2)
       })
 

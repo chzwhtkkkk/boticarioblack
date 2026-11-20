@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { createPixPayment } from '../services/pixApi'
+import { createClient } from '@supabase/supabase-js'
 import { trackInitiateCheckout, trackPurchase, getUTMs, getSubids } from '../utils/tracking'
 import { formatPrice } from '../utils/formatPrice'
 import PromoCountdown from '../components/PromoCountdown'
@@ -29,13 +29,77 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [shippingOption, setShippingOption] = useState('retirada') // retirada, gratis, expresso
   const [expressPrice] = useState((Math.random() * 8 + 1).toFixed(2)) // Preço aleatório entre 1.00 e 9.99
+  const [pixData, setPixData] = useState(null) // Dados do PIX gerado
+  const [showPixModal, setShowPixModal] = useState(false) // Modal do QR Code
+  const [pollingInterval, setPollingInterval] = useState(null) // Intervalo do polling
 
   // Track InitiateCheckout quando entrar na página
   useEffect(() => {
     if (cart.length > 0) {
       trackInitiateCheckout(cart, getCartTotal())
     }
+    
+    // Cleanup: parar polling quando sair da página
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval)
+      }
+    }
   }, [])
+
+  // Função para iniciar polling de verificação de pagamento
+  const startPaymentPolling = (transactionId) => {
+    console.log('🔄 Iniciando polling para transação:', transactionId)
+    
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/flevopay/check-status?transaction_id=${transactionId}`)
+        const data = await response.json()
+        
+        console.log('📊 Status:', data.status)
+        
+        if (data.status === 'paid') {
+          // Pagamento aprovado!
+          clearInterval(interval)
+          setPollingInterval(null)
+          
+          console.log('🎉 Pagamento aprovado! Redirecionando...')
+          
+          // Disparar evento de conversão
+          trackPurchase({
+            orderId: pixData.reference,
+            items: cart,
+            total: getTotalWithShipping()
+          })
+          
+          // Capturar UTMs da URL atual
+          const urlParams = new URLSearchParams(window.location.search)
+          const utmParams = new URLSearchParams()
+          for (const [key, value] of urlParams) {
+            if (key.startsWith('utm_') || key === 'src' || key === 'sck') {
+              utmParams.append(key, value)
+            }
+          }
+          
+          // Redirecionar para página de sucesso com UTMs
+          const redirectUrl = data.redirect_url + (utmParams.toString() ? `&${utmParams.toString()}` : '')
+          window.location.href = redirectUrl
+        }
+      } catch (error) {
+        console.error('❌ Erro no polling:', error)
+      }
+    }, 3000) // Verificar a cada 3 segundos
+    
+    setPollingInterval(interval)
+  }
+
+  // Função para copiar código PIX
+  const copyPixCode = () => {
+    if (pixData?.qr_code) {
+      navigator.clipboard.writeText(pixData.qr_code)
+      alert('Código PIX copiado!')
+    }
+  }
 
   if (cart.length === 0) {
     navigate('/produtos')
@@ -161,53 +225,62 @@ const Checkout = () => {
       const shippingPrice = getShippingPrice()
       const total = getTotalWithShipping()
       
-      // Formato que a API /api/orders/create espera
-      const orderData = {
+      // Capturar UTMs
+      const utms = getUTMs()
+      const subids = getSubids()
+
+      // Preparar dados para FlevoPay
+      const transactionData = {
         customer: {
           name: formData.name.trim(),
           email: formData.email.trim(),
           phone: formData.phone.replace(/\D/g, ''),
-          taxId: formData.cpf.replace(/\D/g, '')
+          cpf: formData.cpf.replace(/\D/g, '')
         },
-        items: cart.map(item => ({
+        cart: cart.map(item => ({
           id: item.id,
-          productId: item.id,
-          name: item.name || item.title,
-          price: Math.round((item.price || item.salePrice) * 100), // centavos
-          quantity: item.quantity,
-          image: item.image
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
         })),
-        shipping: {
-          zipCode: formData.cep.replace(/\D/g, ''),
+        total: total,
+        address: {
           street: formData.address.trim(),
           number: formData.number.trim(),
           complement: formData.complement.trim(),
           neighborhood: formData.neighborhood.trim(),
           city: formData.city.trim(),
           state: formData.state.trim().toUpperCase(),
-          country: 'BR'
+          cep: formData.cep.replace(/\D/g, '')
         },
-        payment: {
-          method: 'PIX'
-        }
+        tracking: utms || {}
       }
 
-      const paymentResponse = await createPixPayment(orderData)
+      console.log('📤 Criando transação FlevoPay...', transactionData)
+
+      // Chamar API para criar PIX
+      const response = await fetch('/api/flevopay/create-transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(transactionData)
+      })
+
+      const paymentResponse = await response.json()
         
       if (!paymentResponse.success) {
         throw new Error(paymentResponse.error || 'Erro ao gerar pagamento')
       }
 
-      // Redirecionar para página de sucesso com dados do PIX
-      navigate('/pedido-confirmado', {
-        state: {
-          orderNumber: paymentResponse.orderNumber,
-          paymentData: paymentResponse.paymentData,
-          paymentMethod: 'pix'
-        }
-      })
+      console.log('✅ PIX gerado com sucesso:', paymentResponse)
 
-      clearCart()
+      // Salvar dados do PIX
+      setPixData(paymentResponse)
+      setShowPixModal(true)
+
+      // Iniciar polling para verificar pagamento
+      startPaymentPolling(paymentResponse.transaction_id)
 
     } catch (error) {
       alert('Erro ao processar pedido: ' + error.message)
@@ -592,6 +665,73 @@ const Checkout = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal do QR Code PIX */}
+      {showPixModal && pixData && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="text-center mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Pedido Criado!</h2>
+              <p className="text-gray-600">Escaneie o QR Code para pagar</p>
+            </div>
+
+            {/* QR Code */}
+            <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-6 mb-4 flex justify-center">
+              {pixData.qr_code_base64 ? (
+                <img 
+                  src={pixData.qr_code_base64} 
+                  alt="QR Code PIX" 
+                  className="w-64 h-64"
+                />
+              ) : (
+                <div className="w-64 h-64 bg-gray-200 flex items-center justify-center">
+                  <p className="text-gray-500">QR Code indisponível</p>
+                </div>
+              )}
+            </div>
+
+            {/* Código Copia e Cola */}
+            <div className="mb-4">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Ou use o código Pix Copia e Cola:
+              </label>
+              <div className="bg-gray-50 border border-gray-300 rounded-lg p-3 break-all text-xs font-mono">
+                {pixData.qr_code}
+              </div>
+              <button
+                onClick={copyPixCode}
+                className="w-full mt-2 bg-[#246c61] hover:bg-[#1d5850] text-white font-medium py-2 rounded-lg transition-colors"
+              >
+                Copiar Código PIX
+              </button>
+            </div>
+
+            {/* Status */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
+                <span className="text-sm font-medium text-blue-900">
+                  Aguardando pagamento...
+                </span>
+              </div>
+              <p className="text-xs text-blue-700 mt-2">
+                Assim que confirmarmos o pagamento, você será redirecionado automaticamente.
+              </p>
+            </div>
+
+            {/* Info */}
+            <div className="text-xs text-gray-500 text-center">
+              <p>Pedido: {pixData.reference}</p>
+              <p>Valor: R$ {(pixData.amount / 100).toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
