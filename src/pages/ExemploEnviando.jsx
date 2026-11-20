@@ -87,69 +87,99 @@ const ExemploEnviando = () => {
 
             {/* Timeline */}
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
                 <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
-                Linha do Tempo
+                Status do Pedido
               </h2>
 
+              {/* Timeline Horizontal - Estilo Moderno */}
               <div className="relative">
-                {/* Linha vertical */}
-                <div className="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-green-500 via-purple-500 to-gray-300"></div>
-
-                {/* Eventos */}
-                <div className="space-y-8">
+                {/* Container dos Steps */}
+                <div className="flex items-start justify-between mb-4">
                   {pedido.timeline.map((evento, index) => (
-                    <div key={index} className="relative flex items-start gap-4">
-                      {/* Ícone */}
-                      <div className={`relative z-10 flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-lg ${
-                        evento.completo 
-                          ? evento.atual 
-                            ? 'bg-purple-500 ring-4 ring-purple-200 animate-pulse' 
-                            : 'bg-green-500'
-                          : 'bg-gray-300'
-                      }`}>
-                        {evento.icon}
-                      </div>
+                    <div key={index} className="flex-1 relative">
+                      {/* Linha de Conexão */}
+                      {index < pedido.timeline.length - 1 && (
+                        <div className="absolute top-8 left-1/2 w-full h-1 -z-10">
+                          <div className={`h-full ${
+                            evento.completo ? 'bg-green-500' : 'bg-gray-300'
+                          }`}></div>
+                        </div>
+                      )}
 
-                      {/* Conteúdo */}
-                      <div className={`flex-1 pb-8 ${evento.atual ? 'animate-pulse-slow' : ''}`}>
-                        <div className={`p-4 rounded-xl border-2 ${
+                      {/* Step */}
+                      <div className="flex flex-col items-center">
+                        {/* Círculo/Ícone */}
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow-lg transition-all ${
                           evento.completo 
-                            ? evento.atual
-                              ? 'bg-purple-50 border-purple-300 shadow-lg'
-                              : 'bg-green-50 border-green-300'
-                            : 'bg-gray-50 border-gray-300'
+                            ? evento.atual 
+                              ? 'bg-green-500 ring-4 ring-green-200 scale-110 animate-pulse' 
+                              : 'bg-green-500'
+                            : 'bg-gray-300'
                         }`}>
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className={`font-bold text-lg mb-1 ${
-                                evento.completo ? 'text-gray-900' : 'text-gray-500'
-                              }`}>
-                                {evento.status}
-                                {evento.atual && (
-                                  <span className="ml-2 text-sm bg-purple-600 text-white px-2 py-1 rounded-full">
-                                    Atual
-                                  </span>
-                                )}
-                              </p>
-                              <p className={`text-sm ${
-                                evento.completo ? 'text-gray-600' : 'text-gray-400'
-                              }`}>
-                                {evento.data}
-                              </p>
-                            </div>
-                            {evento.completo && !evento.atual && (
-                              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          {evento.completo ? (
+                            evento.atual ? (
+                              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                               </svg>
-                            )}
-                          </div>
+                            ) : (
+                              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )
+                          ) : (
+                            <div className="w-4 h-4 bg-white rounded-full"></div>
+                          )}
+                        </div>
+
+                        {/* Texto */}
+                        <div className="mt-4 text-center">
+                          <p className={`font-bold text-sm mb-1 ${
+                            evento.completo ? 'text-gray-900' : 'text-gray-400'
+                          }`}>
+                            {evento.status}
+                          </p>
+                          <p className={`text-xs ${
+                            evento.completo ? 'text-gray-600' : 'text-gray-400'
+                          }`}>
+                            {evento.data}
+                          </p>
+                          {evento.atual && (
+                            <span className="inline-block mt-2 text-xs bg-green-500 text-white px-3 py-1 rounded-full font-semibold">
+                              Atual
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
                   ))}
+                </div>
+
+                {/* Detalhes do Status Atual */}
+                <div className="mt-8 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-green-900 mb-2">🚚 Seu pedido está a caminho!</h3>
+                      <p className="text-green-700 mb-3">
+                        O pedido foi postado em <strong>19/11/2024 às 10:15</strong> e está em trânsito para o endereço de entrega.
+                      </p>
+                      <div className="bg-white rounded-lg p-4 border border-green-200">
+                        <p className="text-sm text-gray-600 mb-2">
+                          📍 <strong>Previsão de entrega:</strong>
+                        </p>
+                        <p className="text-2xl font-bold text-green-600">{pedido.previsaoEntrega}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
