@@ -1,22 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { formatPrice } from '../utils/formatPrice'
 import { Link } from 'react-router-dom'
-
-let supabase = null
-
-// Inicializar Supabase de forma assíncrona
-const initSupabase = async () => {
-  if (supabase) return supabase
-  
-  const { createClient } = await import('@supabase/supabase-js')
-  
-  supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL || 'https://onscojkssuytbqzqgafu.supabase.co',
-    import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uc2Nvamtzc3V5dGJxenFnYWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE3MDk3NjAsImV4cCI6MjA0NzI4NTc2MH0.gj6-QDhfE_lZ2iuaJkPBj-_6TOCJo5mIcbpQ-UyPxu0'
-  )
-  
-  return supabase
-}
 
 const MyOrdersNew = () => {
   const [searchType, setSearchType] = useState('cpf') // 'cpf' ou 'email'
@@ -46,46 +30,68 @@ const MyOrdersNew = () => {
     setSearched(true)
 
     try {
-      const sb = await initSupabase()
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://onscojkssuytbqzqgafu.supabase.co'
+      const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uc2Nvamtzc3V5dGJxenFnYWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE3MDk3NjAsImV4cCI6MjA0NzI4NTc2MH0.gj6-QDhfE_lZ2iuaJkPBj-_6TOCJo5mIcbpQ-UyPxu0'
+
+      console.log('🔍 Buscando pedidos...')
+      console.log('URL:', SUPABASE_URL)
+      console.log('Tipo de busca:', searchType)
+      console.log('Valor:', searchValue)
+
+      // Primeiro, buscar o cliente
+      let customersUrl = `${SUPABASE_URL}/rest/v1/customers?select=id`
       
-      let query = sb
-        .from('orders')
-        .select(`
-          *,
-          customer:customers(*),
-          items:order_items(*)
-        `)
-        .order('created_at', { ascending: false })
-
-      // Buscar cliente primeiro
-      let customerQuery = sb.from('customers').select('id')
-
       if (searchType === 'cpf') {
         const cpfNumbers = searchValue.replace(/\D/g, '')
-        customerQuery = customerQuery.eq('tax_id', cpfNumbers)
+        customersUrl += `&tax_id=eq.${cpfNumbers}`
       } else {
-        customerQuery = customerQuery.eq('email', searchValue.trim().toLowerCase())
+        customersUrl += `&email=eq.${searchValue.trim().toLowerCase()}`
       }
 
-      const { data: customers, error: customerError } = await customerQuery
+      const customersResponse = await fetch(customersUrl, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      })
 
-      if (customerError) throw customerError
+      if (!customersResponse.ok) {
+        throw new Error(`Erro ao buscar cliente: ${customersResponse.status}`)
+      }
 
-      if (customers && customers.length > 0) {
-        const customerIds = customers.map(c => c.id)
-        query = query.in('customer_id', customerIds)
+      const customers = await customersResponse.json()
+      console.log('👤 Clientes encontrados:', customers.length)
 
-        const { data: ordersData, error: ordersError } = await query
-
-        if (ordersError) throw ordersError
-
-        setOrders(ordersData || [])
-      } else {
+      if (customers.length === 0) {
         setOrders([])
+        setLoading(false)
+        return
       }
+
+      // Buscar pedidos do cliente
+      const customerIds = customers.map(c => c.id).join(',')
+      const ordersUrl = `${SUPABASE_URL}/rest/v1/orders?select=*,customer:customers(*),items:order_items(*)&customer_id=in.(${customerIds})&order=created_at.desc`
+
+      const ordersResponse = await fetch(ordersUrl, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!ordersResponse.ok) {
+        throw new Error(`Erro ao buscar pedidos: ${ordersResponse.status}`)
+      }
+
+      const ordersData = await ordersResponse.json()
+      console.log('📦 Pedidos encontrados:', ordersData.length)
+
+      setOrders(ordersData || [])
     } catch (error) {
-      console.error('Erro ao buscar pedidos:', error)
-      alert('Erro ao buscar pedidos. Tente novamente.')
+      console.error('❌ Erro ao buscar pedidos:', error)
+      alert(`Erro ao buscar pedidos: ${error.message}`)
       setOrders([])
     } finally {
       setLoading(false)
