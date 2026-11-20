@@ -1,13 +1,22 @@
-import { useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { useState, useEffect } from 'react'
 import { formatPrice } from '../utils/formatPrice'
 import { Link } from 'react-router-dom'
 
-// Supabase client
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || 'https://onscojkssuytbqzqgafu.supabase.co',
-  import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uc2Nvamtzc3V5dGJxenFnYWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE3MDk3NjAsImV4cCI6MjA0NzI4NTc2MH0.gj6-QDhfE_lZ2iuaJkPBj-_6TOCJo5mIcbpQ-UyPxu0'
-)
+let supabase = null
+
+// Inicializar Supabase de forma assíncrona
+const initSupabase = async () => {
+  if (supabase) return supabase
+  
+  const { createClient } = await import('@supabase/supabase-js')
+  
+  supabase = createClient(
+    import.meta.env.VITE_SUPABASE_URL || 'https://onscojkssuytbqzqgafu.supabase.co',
+    import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uc2Nvamtzc3V5dGJxenFnYWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE3MDk3NjAsImV4cCI6MjA0NzI4NTc2MH0.gj6-QDhfE_lZ2iuaJkPBj-_6TOCJo5mIcbpQ-UyPxu0'
+  )
+  
+  return supabase
+}
 
 const MyOrdersNew = () => {
   const [searchType, setSearchType] = useState('cpf') // 'cpf' ou 'email'
@@ -37,7 +46,9 @@ const MyOrdersNew = () => {
     setSearched(true)
 
     try {
-      let query = supabase
+      const sb = await initSupabase()
+      
+      let query = sb
         .from('orders')
         .select(`
           *,
@@ -47,7 +58,7 @@ const MyOrdersNew = () => {
         .order('created_at', { ascending: false })
 
       // Buscar cliente primeiro
-      let customerQuery = supabase.from('customers').select('id')
+      let customerQuery = sb.from('customers').select('id')
 
       if (searchType === 'cpf') {
         const cpfNumbers = searchValue.replace(/\D/g, '')
