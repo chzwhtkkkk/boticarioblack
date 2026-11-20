@@ -1031,7 +1031,7 @@ export const products = [
     name: 'Kit Lily (2 itens)',
     category: 'Kits e Presentes',
     price: 55.90,
-    image: "/images/dia dos namorados/Kit Presente Dia Dos Namorados L'eau De Lily (2 itens).webp",
+    image: "/images/dia dos namorados/Kit Presente Dia Dos Namorados L´eau De Lily (2 itens).webp",
     video: null,
     description: 'Kit Lily com perfume, hidratante e desodorante. Fragrância floral sofisticada em embalagem premium.\n\nO Kit Lily oferece um ritual completo de cuidado, unindo a riqueza dos florais à força das madeiras. Essa perfumaria de presente entrega itens que utilizam o exclusivo óleo essencial do Lírio, extraído artesanalmente, garantindo uma experiência olfativa única. Todos os itens vêm em uma caixa florida que evidencia que o grande amor de mãe é algo transcendente e para retribuir, não seria apenas com uma flor, mas com um suntuoso bouquet.',
     stock: 38,
