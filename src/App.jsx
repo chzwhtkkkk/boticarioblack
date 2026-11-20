@@ -23,6 +23,9 @@ import Rastreio from './pages/Rastreio'
 import SearchResults from './pages/SearchResults'
 import MyOrders from './pages/MyOrders'
 import MyOrdersNew from './pages/MyOrdersNew'
+import ExemploPix from './pages/ExemploPix'
+import ExemploPago from './pages/ExemploPago'
+import ExemploEnviando from './pages/ExemploEnviando'
 import Admin from './pages/Admin'
 
 function App() {
@@ -48,6 +51,9 @@ function App() {
               <Route path="/pedido-confirmado" element={<OrderSuccess />} />
               <Route path="/meus-pedidos" element={<MyOrders />} />
               <Route path="/area-cliente" element={<MyOrdersNew />} />
+              <Route path="/exemplo-pix" element={<ExemploPix />} />
+              <Route path="/exemplo-pago" element={<ExemploPago />} />
+              <Route path="/exemplo-enviando" element={<ExemploEnviando />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/rastreio" element={<Rastreio />} />
               <Route path="/rastrear-pedido" element={<Rastreio />} />
