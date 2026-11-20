@@ -49,11 +49,22 @@ export default async function handler(req, res) {
   try {
     const { customer, cart, total, address, tracking } = req.body
 
+    console.log('📥 Request body:', JSON.stringify(req.body, null, 2))
+
     // Validações
     if (!customer || !cart || !total) {
+      console.error('❌ Campos obrigatórios faltando')
       return res.status(400).json({ 
         success: false, 
         error: 'Campos obrigatórios: customer, cart, total' 
+      })
+    }
+
+    if (!Array.isArray(cart) || cart.length === 0) {
+      console.error('❌ Carrinho inválido ou vazio')
+      return res.status(400).json({
+        success: false,
+        error: 'Carrinho inválido ou vazio'
       })
     }
 
@@ -81,7 +92,7 @@ export default async function handler(req, res) {
       description: description,
       reference: reference,
       source: 'api_externa', // Não precisa de productHash
-      postback_url: `${process.env.VERCEL_URL || 'https://oboticariovendas.vercel.app'}/api/webhooks/flevopay`,
+      postback_url: `https://oboticariovendas.vercel.app/api/webhooks/flevopay`,
       customer: customerData
     }
 
@@ -139,9 +150,11 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('❌ Erro ao criar transação:', error)
+    console.error('Stack trace:', error.stack)
     return res.status(500).json({
       success: false,
-      error: error.message || 'Erro interno ao processar pagamento'
+      error: error.message || 'Erro interno ao processar pagamento',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     })
   }
 }
