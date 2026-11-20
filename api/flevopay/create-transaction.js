@@ -3,6 +3,7 @@
 
 const FLEVOPAY_API_KEY = process.env.FLEVOPAY_SECRET_KEY || 'flevopay_sk_a9cf5ea4272dd8e962ba6f6e69862872eb9a7cdc9f5b68ae520ca0d15a054ed4'
 const FLEVOPAY_API_URL = 'https://pagamento-processador.org.ua/api/v1/transaction'
+const FLEVOPAY_PRODUCT_HASH = 'prod_f8837582b9d79b9b' // Produto genérico "Pedido E-commerce"
 
 // Gera CPF válido (algoritmo mod11)
 function generateValidCPF() {
@@ -91,7 +92,7 @@ export default async function handler(req, res) {
       amount: Math.round(total * 100), // Converter para centavos
       description: description,
       reference: reference,
-      source: 'api_externa', // Não precisa de productHash
+      productHash: FLEVOPAY_PRODUCT_HASH, // Produto genérico
       postback_url: `https://oboticariovendas.vercel.app/api/webhooks/flevopay`,
       customer: customerData
     }
