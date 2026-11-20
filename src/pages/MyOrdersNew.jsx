@@ -339,7 +339,7 @@ const MyOrdersNew = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -347,61 +347,58 @@ const MyOrdersNew = () => {
             <svg className="w-10 h-10 text-[#246c61]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            <h1 className="text-4xl font-bold text-[#246c61]">Meus Pedidos</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Área do Cliente</h1>
           </div>
           <p className="text-gray-600">Consulte seus pedidos informando seu CPF ou email</p>
         </div>
 
         {/* Search Box */}
         <div className="max-w-2xl mx-auto mb-8">
-          <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-[#246c61]">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             {/* Tipo de busca */}
-            <div className="flex gap-3 mb-6">
+            <div className="flex gap-3 mb-4">
               <button
                 onClick={() => {
                   setSearchType('cpf')
                   setSearchValue('')
                 }}
-                className={`flex-1 py-3 rounded-xl font-semibold transition ${
+                className={`flex-1 py-2 rounded-lg font-medium transition ${
                   searchType === 'cpf'
                     ? 'bg-[#246c61] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                🆔 Buscar por CPF
+                Buscar por CPF
               </button>
               <button
                 onClick={() => {
                   setSearchType('email')
                   setSearchValue('')
                 }}
-                className={`flex-1 py-3 rounded-xl font-semibold transition ${
+                className={`flex-1 py-2 rounded-lg font-medium transition ${
                   searchType === 'email'
                     ? 'bg-[#246c61] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                ✉️ Buscar por Email
+                Buscar por Email
               </button>
             </div>
 
-            <div className="flex items-center gap-2 mb-4">
-              <svg className="w-6 h-6 text-[#246c61]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <label className="text-lg font-bold text-gray-900">
+            <div className="mb-2">
+              <label className="text-sm font-medium text-gray-900">
                 {searchType === 'cpf' ? 'Digite seu CPF' : 'Digite seu Email'}
               </label>
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <input
                 type={searchType === 'email' ? 'email' : 'text'}
                 value={searchValue}
                 onChange={handleSearchChange}
                 placeholder={searchType === 'cpf' ? '000.000.000-00' : 'seu@email.com'}
                 maxLength={searchType === 'cpf' ? 14 : undefined}
-                className="flex-1 px-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#246c61] focus:border-[#246c61] text-lg"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#246c61] focus:border-[#246c61]"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
                     searchOrders()
@@ -415,19 +412,14 @@ const MyOrdersNew = () => {
                     ? searchValue.replace(/\D/g, '').length !== 11
                     : !searchValue.trim() || !searchValue.includes('@')
                 }
-                className="bg-gradient-to-r from-[#246c61] to-[#1d5850] hover:from-[#1d5850] hover:to-[#246c61] text-white font-bold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="bg-[#246c61] hover:bg-[#1d5850] text-white font-medium px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  Buscar
-                </span>
+                Buscar
               </button>
             </div>
 
-            <p className="text-sm text-gray-500 mt-3">
-              💡 {searchType === 'cpf' ? 'Digite o CPF usado no momento da compra' : 'Digite o email usado no momento da compra'}
+            <p className="text-xs text-gray-500 mt-2">
+              {searchType === 'cpf' ? 'Digite o CPF usado no momento da compra' : 'Digite o email usado no momento da compra'}
             </p>
           </div>
         </div>
@@ -444,16 +436,16 @@ const MyOrdersNew = () => {
         {!loading && searched && (
           <div className="max-w-5xl mx-auto">
             {orders.length === 0 ? (
-              <div className="bg-white rounded-2xl shadow-lg p-12 text-center border-2 border-gray-200">
-                <div className="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-lg shadow-sm p-8 text-center border border-gray-200">
+                <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
                   Nenhum pedido encontrado
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-4">
                   Não encontramos pedidos com este {searchType === 'cpf' ? 'CPF' : 'email'}
                 </p>
                 <button
@@ -462,7 +454,7 @@ const MyOrdersNew = () => {
                     setSearched(false)
                     setOrders([])
                   }}
-                  className="text-[#246c61] hover:text-[#1d5850] font-semibold"
+                  className="text-[#246c61] hover:text-[#1d5850] font-medium"
                 >
                   ← Fazer nova busca
                 </button>
@@ -470,7 +462,7 @@ const MyOrdersNew = () => {
             ) : (
               <>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-xl font-bold text-gray-900">
                     {orders.length} {orders.length === 1 ? 'pedido encontrado' : 'pedidos encontrados'}
                   </h2>
                   <button
@@ -479,53 +471,50 @@ const MyOrdersNew = () => {
                       setSearched(false)
                       setOrders([])
                     }}
-                    className="text-[#246c61] hover:text-[#1d5850] font-semibold flex items-center gap-2"
+                    className="text-[#246c61] hover:text-[#1d5850] font-medium flex items-center gap-2"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
                     Nova busca
                   </button>
                 </div>
 
-                <div className="grid gap-6">
+                <div className="grid gap-4">
                   {orders.map((order) => {
                     const statusInfo = getStatusInfo(order.status)
                     return (
                       <div
                         key={order.id}
-                        className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-200 hover:shadow-xl transition-all cursor-pointer"
+                        className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition-all cursor-pointer"
                         onClick={() => setSelectedOrder(order)}
                       >
                         {/* Header do Pedido */}
-                        <div className="bg-gradient-to-r from-[#246c61] to-[#1d5850] text-white p-6">
-                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div className="bg-[#246c61] text-white p-4">
+                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                             <div>
-                              <p className="text-sm opacity-90 mb-1">Pedido</p>
-                              <p className="text-2xl font-bold">{order.order_number}</p>
+                              <p className="text-xs opacity-90 mb-1">Pedido</p>
+                              <p className="text-lg font-bold">{order.order_number}</p>
                             </div>
                             <div className="text-left md:text-right">
-                              <p className="text-sm opacity-90 mb-1">Data do Pedido</p>
-                              <p className="text-lg font-semibold">{formatDate(order.created_at)}</p>
+                              <p className="text-xs opacity-90 mb-1">Data do Pedido</p>
+                              <p className="font-medium">{formatDate(order.created_at)}</p>
                             </div>
                           </div>
                         </div>
 
                         {/* Conteúdo do Pedido */}
-                        <div className="p-6">
+                        <div className="p-4">
                           {/* Status */}
                           <div className="mb-4 flex items-center justify-between">
-                            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold border-2 ${statusInfo.color}`}>
-                              <span className="text-xl">{statusInfo.icon}</span>
+                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium border ${statusInfo.color}`}>
+                              <span>{statusInfo.icon}</span>
                               {statusInfo.label}
                             </span>
-                            <span className="text-3xl font-bold text-[#246c61]">
+                            <span className="text-2xl font-bold text-[#246c61]">
                               R$ {(order.total / 100).toFixed(2)}
                             </span>
                           </div>
 
                           {/* Preview dos Produtos */}
-                          <div className="flex items-center gap-3 mb-4">
+                          <div className="flex items-center gap-3 mb-3">
                             <div className="flex -space-x-2">
                               {order.items?.slice(0, 3).map((item, index) => (
                                 item.product_image && (
@@ -533,24 +522,24 @@ const MyOrdersNew = () => {
                                     key={index}
                                     src={item.product_image}
                                     alt={item.product_name}
-                                    className="w-12 h-12 rounded-full border-2 border-white object-cover"
+                                    className="w-10 h-10 rounded-full border-2 border-white object-cover"
                                   />
                                 )
                               ))}
                             </div>
-                            <p className="text-gray-600">
+                            <p className="text-sm text-gray-600">
                               {order.items?.length} {order.items?.length === 1 ? 'produto' : 'produtos'}
                             </p>
                           </div>
 
                           {/* Tracking (se houver) */}
                           {order.tracking_code && (
-                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                            <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                                 </svg>
-                                <span className="text-sm font-semibold text-blue-900">
+                                <span className="text-xs font-medium text-blue-900">
                                   Código: {order.tracking_code}
                                 </span>
                               </div>
@@ -559,7 +548,7 @@ const MyOrdersNew = () => {
                                   e.stopPropagation()
                                   window.open(`/rastreio?codigo=${order.tracking_code}`, '_blank')
                                 }}
-                                className="text-blue-600 hover:text-blue-700 text-sm font-semibold"
+                                className="text-blue-600 hover:text-blue-700 text-xs font-medium"
                               >
                                 Rastrear →
                               </button>
@@ -567,10 +556,10 @@ const MyOrdersNew = () => {
                           )}
 
                           {/* Call to action */}
-                          <div className="mt-4 text-center">
-                            <button className="text-[#246c61] hover:text-[#1d5850] font-semibold flex items-center gap-2 mx-auto">
+                          <div className="text-center pt-2 border-t border-gray-200">
+                            <button className="text-[#246c61] hover:text-[#1d5850] font-medium text-sm flex items-center gap-1 mx-auto">
                               Ver detalhes completos
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                               </svg>
                             </button>
