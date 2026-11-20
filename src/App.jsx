@@ -22,6 +22,7 @@ import Contact from './pages/Contact'
 import Rastreio from './pages/Rastreio'
 import SearchResults from './pages/SearchResults'
 import MyOrders from './pages/MyOrders'
+import MyOrdersNew from './pages/MyOrdersNew'
 import Admin from './pages/Admin'
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/pedido-confirmado" element={<OrderSuccess />} />
               <Route path="/meus-pedidos" element={<MyOrders />} />
+              <Route path="/area-cliente" element={<MyOrdersNew />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/rastreio" element={<Rastreio />} />
               <Route path="/rastrear-pedido" element={<Rastreio />} />
