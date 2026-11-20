@@ -30,38 +30,62 @@ const ExemploEnviando = () => {
         data: '18/11/2024 16:30', 
         status: 'Pedido Realizado', 
         completo: true, 
-        icon: '/images/icones rastreio/992cc356-349c-4f40-96be-039da5b0f8dd-26-icone-menu-pequeno-listadesejos.webp'
+        iconSvg: (
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        )
       },
       { 
         data: '18/11/2024 16:32', 
         status: 'Pagamento Confirmado', 
         completo: true, 
-        icon: '/images/icones rastreio/a269c03f-a148-45d9-ad87-7888ea5fae97-note.svg'
+        iconSvg: (
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        )
       },
       { 
         data: '19/11/2024 10:15', 
         status: 'Pedido Postado', 
         completo: true, 
-        icon: '/images/icones rastreio/83414a7b-d1fc-497a-befb-80b76769d289-portal-revendedor.webp'
+        iconSvg: (
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        )
       },
       { 
         data: '20/11/2024 14:22', 
         status: 'Em Trânsito', 
         completo: true, 
-        icon: '/images/icones rastreio/32999b91-d5a8-4da6-8e31-1a6189689f16-26-icone-menu-pequeno-entrega-raipida.webp',
+        iconSvg: (
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+          </svg>
+        ),
         atual: true 
       },
       { 
         data: 'Previsão: 25/11', 
         status: 'Saiu para Entrega', 
         completo: false, 
-        icon: '/images/icones rastreio/32999b91-d5a8-4da6-8e31-1a6189689f16-26-icone-menu-pequeno-entrega-raipida.webp'
+        iconSvg: (
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+        )
       },
       { 
         data: 'Previsão: 25/11', 
         status: 'Entregue', 
         completo: false, 
-        icon: '/images/icones rastreio/5d6dccf9-42a4-49d5-b3aa-7da719cb88dc-casa.webp'
+        iconSvg: (
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        )
       }
     ]
   }
@@ -150,19 +174,7 @@ const ExemploEnviando = () => {
                               : 'bg-green-500'
                             : 'bg-gray-300'
                         }`}>
-                          {evento.completo ? (
-                            <img 
-                              src={evento.icon} 
-                              alt={evento.status}
-                              className="w-10 h-10 object-contain filter brightness-0 invert"
-                            />
-                          ) : (
-                            <img 
-                              src={evento.icon} 
-                              alt={evento.status}
-                              className="w-10 h-10 object-contain opacity-40"
-                            />
-                          )}
+                          {evento.iconSvg}
                         </div>
 
                         {/* Texto */}
