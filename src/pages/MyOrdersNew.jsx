@@ -31,7 +31,7 @@ const MyOrdersNew = () => {
 
     try {
       const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://onscojkssuytbqzqgafu.supabase.co'
-      const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uc2Nvamtzc3V5dGJxenFnYWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE3MDk3NjAsImV4cCI6MjA0NzI4NTc2MH0.gj6-QDhfE_lZ2iuaJkPBj-_6TOCJo5mIcbpQ-UyPxu0'
+      const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_HAeCbLMh1pRPOhPoOklOoA_tYAdQ4x2pRE'
 
       console.log('🔍 Buscando pedidos...')
       console.log('URL:', SUPABASE_URL)
