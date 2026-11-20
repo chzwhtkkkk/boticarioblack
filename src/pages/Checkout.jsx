@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { createClient } from '@supabase/supabase-js'
 import { trackInitiateCheckout, trackPurchase, getUTMs, getSubids } from '../utils/tracking'
 import { formatPrice } from '../utils/formatPrice'
 import PromoCountdown from '../components/PromoCountdown'
