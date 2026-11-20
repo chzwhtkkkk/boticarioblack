@@ -26,12 +26,43 @@ const ExemploEnviando = () => {
       cep: '78557-530'
     },
     timeline: [
-      { data: '18/11/2024 16:30', status: 'Pedido Realizado', completo: true, icon: '🛍️' },
-      { data: '18/11/2024 16:32', status: 'Pagamento Confirmado', completo: true, icon: '✅' },
-      { data: '19/11/2024 10:15', status: 'Pedido Postado', completo: true, icon: '📦' },
-      { data: '20/11/2024 14:22', status: 'Em Trânsito', completo: true, icon: '🚚', atual: true },
-      { data: 'Previsão: 25/11', status: 'Saiu para Entrega', completo: false, icon: '🏃' },
-      { data: 'Previsão: 25/11', status: 'Entregue', completo: false, icon: '🎉' }
+      { 
+        data: '18/11/2024 16:30', 
+        status: 'Pedido Realizado', 
+        completo: true, 
+        icon: '/images/icones rastreio/992cc356-349c-4f40-96be-039da5b0f8dd-26-icone-menu-pequeno-listadesejos.webp'
+      },
+      { 
+        data: '18/11/2024 16:32', 
+        status: 'Pagamento Confirmado', 
+        completo: true, 
+        icon: '/images/icones rastreio/a269c03f-a148-45d9-ad87-7888ea5fae97-note.svg'
+      },
+      { 
+        data: '19/11/2024 10:15', 
+        status: 'Pedido Postado', 
+        completo: true, 
+        icon: '/images/icones rastreio/83414a7b-d1fc-497a-befb-80b76769d289-portal-revendedor.webp'
+      },
+      { 
+        data: '20/11/2024 14:22', 
+        status: 'Em Trânsito', 
+        completo: true, 
+        icon: '/images/icones rastreio/32999b91-d5a8-4da6-8e31-1a6189689f16-26-icone-menu-pequeno-entrega-raipida.webp',
+        atual: true 
+      },
+      { 
+        data: 'Previsão: 25/11', 
+        status: 'Saiu para Entrega', 
+        completo: false, 
+        icon: '/images/icones rastreio/32999b91-d5a8-4da6-8e31-1a6189689f16-26-icone-menu-pequeno-entrega-raipida.webp'
+      },
+      { 
+        data: 'Previsão: 25/11', 
+        status: 'Entregue', 
+        completo: false, 
+        icon: '/images/icones rastreio/5d6dccf9-42a4-49d5-b3aa-7da719cb88dc-casa.webp'
+      }
     ]
   }
 
@@ -112,7 +143,7 @@ const ExemploEnviando = () => {
                       {/* Step */}
                       <div className="flex flex-col items-center">
                         {/* Círculo/Ícone */}
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow-lg transition-all ${
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all ${
                           evento.completo 
                             ? evento.atual 
                               ? 'bg-green-500 ring-4 ring-green-200 scale-110 animate-pulse' 
@@ -120,17 +151,17 @@ const ExemploEnviando = () => {
                             : 'bg-gray-300'
                         }`}>
                           {evento.completo ? (
-                            evento.atual ? (
-                              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            ) : (
-                              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )
+                            <img 
+                              src={evento.icon} 
+                              alt={evento.status}
+                              className="w-10 h-10 object-contain filter brightness-0 invert"
+                            />
                           ) : (
-                            <div className="w-4 h-4 bg-white rounded-full"></div>
+                            <img 
+                              src={evento.icon} 
+                              alt={evento.status}
+                              className="w-10 h-10 object-contain opacity-40"
+                            />
                           )}
                         </div>
 
