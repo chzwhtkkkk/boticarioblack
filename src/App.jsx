@@ -27,6 +27,7 @@ import ExemploPix from './pages/ExemploPix'
 import ExemploPago from './pages/ExemploPago'
 import ExemploEnviando from './pages/ExemploEnviando'
 import Sucesso from './pages/Sucesso'
+import Settings from './pages/Settings'
 import Admin from './pages/Admin'
 
 function App() {
@@ -56,6 +57,7 @@ function App() {
               <Route path="/exemplo-pix" element={<ExemploPix />} />
               <Route path="/exemplo-pago" element={<ExemploPago />} />
               <Route path="/exemplo-enviando" element={<ExemploEnviando />} />
+              <Route path="/settings/integrations" element={<Settings />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/rastreio" element={<Rastreio />} />
               <Route path="/rastrear-pedido" element={<Rastreio />} />
