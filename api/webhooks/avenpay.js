@@ -1,236 +1,194 @@
-// Webhook Avenpay + Integração DiaLOG (Vercel)
-import { createClient } from '@supabase/supabase-js';
+// API Route: Webhook Avenpay
+// POST /api/webhooks/avenpay
+// Recebe notificações de mudança de status de pagamento
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://onscojkssuytbqzqgafu.supabase.co'
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uc2Nvamtzc3V5dGJxenFnYWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjgzNDgsImV4cCI6MjA1MDIwNDM0OH0.tu_anu2vYr-vjsjKoGA7mN5vKSN3bYZP1m9wpUL98w8'
+const DIALOG_WEBHOOK_URL = 'https://dnpgrcriaqpcybhzikvh.supabase.co/functions/v1/webhook-checkout/universal/c688fd32-379c-425e-a8ad-cc600ad69539?token=d04d15b2b59f4363a9064194ecb413973e46cc80249b43318d6c72f0f9ce93ae'
 
 export default async function handler(req, res) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Webhook-Event, X-Webhook-Signature');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    const payment = req.body;
-    const eventType = req.headers['x-webhook-event'] || 'payment.updated';
+    const payment = req.body
+    const event = req.headers['x-webhook-event']
 
-    console.log('═══════════════════════════════════════');
-    console.log('🔔 WEBHOOK AVENPAY');
-    console.log('Event:', eventType);
-    console.log('Payment ID:', payment.id);
-    console.log('Status:', payment.status);
-    console.log('Amount:', payment.amount);
-    console.log('Method:', payment.method);
-    console.log('External Ref:', payment.externalRef);
-    console.log('═══════════════════════════════════════');
+    console.log('📨 Webhook recebido:', event)
+    console.log('📦 Payload:', JSON.stringify(payment, null, 2))
 
-    // Buscar pedido pelo externalRef (order_number)
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .select('*, customer:customers(*)')
-      .eq('order_number', payment.externalRef)
-      .single();
-
-    if (orderError || !order) {
-      console.error('❌ Pedido não encontrado:', payment.externalRef);
-      return res.status(200).json({ 
-        success: false, 
-        error: 'Order not found' 
-      });
+    // Extrair dados do metadata extra (cart e address)
+    let cart = []
+    let address = null
+    if (payment.metadata?.extra) {
+      try {
+        const extra = JSON.parse(payment.metadata.extra)
+        cart = extra.cart || []
+        address = extra.address || null
+      } catch (e) {
+        console.error('❌ Erro ao parsear metadata.extra:', e)
+      }
     }
 
-    // Registrar log do webhook
-    await supabase
-      .from('avenpay_webhook_logs')
-      .insert([{
-        order_id: order.id,
+    // Se pagamento foi aprovado, salvar no Supabase
+    if (payment.status === 'PAID' && event === 'payment.paid') {
+      console.log('✅ Pagamento aprovado! Salvando no Supabase...')
+
+      // 1. Criar/buscar cliente
+      const customerData = {
+        name: payment.payer.name,
+        email: payment.payer.email,
+        phone: payment.payer.phone || null,
+        cpf: payment.payer.taxId
+      }
+
+      const customerResponse = await fetch(`${SUPABASE_URL}/rest/v1/customers?cpf=eq.${customerData.cpf}`, {
+        method: 'GET',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      let customer
+      const existingCustomers = await customerResponse.json()
+
+      if (existingCustomers && existingCustomers.length > 0) {
+        customer = existingCustomers[0]
+        console.log('👤 Cliente existente:', customer.id)
+      } else {
+        // Criar novo cliente
+        const createCustomerResponse = await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(customerData)
+        })
+
+        const newCustomers = await createCustomerResponse.json()
+        customer = newCustomers[0]
+        console.log('👤 Cliente criado:', customer.id)
+      }
+
+      // 2. Criar pedido
+      const orderData = {
+        customer_id: customer.id,
+        total: payment.amount / 100, // Converter de centavos pra reais
+        status: 'paid',
+        payment_method: 'pix',
         payment_id: payment.id,
-        event_type: eventType,
-        status_code: 200,
-        request_body: req.body,
-        response_body: { status: 'processing' }
-      }]);
+        external_ref: payment.externalRef,
+        paid_at: payment.paidAt,
+        shipping_address: address ? JSON.stringify(address) : null
+      }
 
-    // Atualizar pedido baseado no status
-    const updateData = {
-      avenpay_payment_id: payment.id
-    };
+      const createOrderResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(orderData)
+      })
 
-    if (payment.status === 'PAID') {
-      console.log('✅ PAGAMENTO APROVADO!');
-      updateData.status = 'paid';
-      updateData.payment_status = 'paid';
-      updateData.paid_at = new Date().toISOString();
+      const orders = await createOrderResponse.json()
+      const order = orders[0]
+      console.log('📦 Pedido criado:', order.id)
 
-      // Atualizar pedido
-      await supabase
-        .from('orders')
-        .update(updateData)
-        .eq('id', order.id);
+      // 3. Criar itens do pedido
+      if (cart && cart.length > 0) {
+        for (const item of cart) {
+          const itemData = {
+            order_id: order.id,
+            product_id: item.id,
+            product_name: item.name,
+            quantity: item.quantity || 1,
+            price: item.price
+          }
 
-      // Enviar para DiaLOG
-      await sendToDialog(order, payment);
+          await fetch(`${SUPABASE_URL}/rest/v1/order_items`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(itemData)
+          })
+        }
+        console.log(`📦 ${cart.length} itens adicionados ao pedido`)
+      }
 
-    } else if (payment.status === 'REFUSED') {
-      console.log('❌ PAGAMENTO RECUSADO');
-      updateData.status = 'cancelled';
-      updateData.payment_status = 'refused';
+      // 4. Enviar para DiaLOG
+      console.log('📤 Enviando para DiaLOG webhook...')
+      try {
+        const dialogPayload = {
+          event: 'payment.paid',
+          payment_id: payment.id,
+          order_id: order.id,
+          external_ref: payment.externalRef,
+          customer: {
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            cpf: customer.cpf
+          },
+          amount: payment.amount / 100,
+          status: payment.status,
+          paid_at: payment.paidAt,
+          items: cart,
+          address: address
+        }
 
-      await supabase
-        .from('orders')
-        .update(updateData)
-        .eq('id', order.id);
+        const dialogResponse = await fetch(DIALOG_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dialogPayload)
+        })
 
-    } else if (payment.status === 'REFUNDED') {
-      console.log('💸 PAGAMENTO REEMBOLSADO');
-      updateData.status = 'refunded';
-      updateData.payment_status = 'refunded';
+        if (dialogResponse.ok) {
+          console.log('✅ DiaLOG notificado com sucesso')
+        } else {
+          console.error('❌ Erro ao notificar DiaLOG:', dialogResponse.status)
+        }
 
-      await supabase
-        .from('orders')
-        .update(updateData)
-        .eq('id', order.id);
-
-    } else {
-      // PENDING, PROCESSING, etc
-      updateData.status = 'processing';
-
-      await supabase
-        .from('orders')
-        .update(updateData)
-        .eq('id', order.id);
+        // Salvar log do DiaLOG
+        await fetch(`${SUPABASE_URL}/rest/v1/dialog_webhook_logs`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            order_id: order.id,
+            payload: dialogPayload,
+            response_status: dialogResponse.status,
+            response_body: await dialogResponse.text()
+          })
+        })
+      } catch (dialogError) {
+        console.error('❌ Erro ao enviar para DiaLOG:', dialogError)
+      }
     }
 
-    return res.status(200).json({ 
-      success: true,
-      message: 'Webhook processado' 
-    });
+    // Retornar 200 sempre pro webhook não tentar reenviar
+    return res.status(200).json({ received: true })
 
   } catch (error) {
-    console.error('❌ Erro no webhook Avenpay:', error);
-    
-    // Registrar erro no log
-    try {
-      await supabase
-        .from('avenpay_webhook_logs')
-        .insert([{
-          payment_id: req.body?.id || 'unknown',
-          event_type: req.headers['x-webhook-event'] || 'unknown',
-          status_code: 500,
-          request_body: req.body,
-          error_message: error.message
-        }]);
-    } catch (logError) {
-      console.error('Erro ao registrar log:', logError);
-    }
-
-    return res.status(500).json({ 
-      error: 'Erro ao processar webhook' 
-    });
-  }
-}
-
-// Função para enviar dados pro DiaLOG quando pagamento é confirmado
-async function sendToDialog(order, payment) {
-  const dialogWebhookUrl = process.env.DIALOG_WEBHOOK_URL;
-
-  if (!dialogWebhookUrl) {
-    console.error('❌ DIALOG_WEBHOOK_URL não configurada');
-    return;
-  }
-
-  try {
-    // Buscar itens do pedido
-    const { data: items } = await supabase
-      .from('order_items')
-      .select('*')
-      .eq('order_id', order.id);
-
-    // Montar payload para o DiaLOG
-    const dialogPayload = {
-      order_id: order.order_number,
-      status: 'paid',
-      external_reference: order.order_number,
-      customer: {
-        name: order.customer.name,
-        email: order.customer.email,
-        phone: order.customer.phone,
-        document: order.customer.tax_id
-      },
-      shipping_address: {
-        street: order.shipping_address.street,
-        number: order.shipping_address.number,
-        complement: order.shipping_address.complement || '',
-        neighborhood: order.shipping_address.neighborhood,
-        city: order.shipping_address.city,
-        state: order.shipping_address.state,
-        zipcode: order.shipping_address.zipCode,
-        country: order.shipping_address.country || 'BR'
-      },
-      products: items.map(item => ({
-        name: item.product_name,
-        price: item.unit_price / 100, // converter de centavos para reais
-        quantity: item.quantity,
-        weight: 0.5 // peso padrão em kg
-      })),
-      total: order.total / 100 // converter de centavos para reais
-    };
-
-    console.log('📦 Enviando para DiaLOG:', order.order_number);
-
-    // Enviar para DiaLOG
-    const dialogResponse = await fetch(dialogWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(dialogPayload)
-    });
-
-    const dialogData = await dialogResponse.json();
-
-    // Registrar log
-    await supabase
-      .from('dialog_webhook_logs')
-      .insert([{
-        order_id: order.id,
-        order_number: order.order_number,
-        status_code: dialogResponse.status,
-        request_body: dialogPayload,
-        response_body: dialogData,
-        error_message: dialogResponse.ok ? null : JSON.stringify(dialogData)
-      }]);
-
-    if (dialogResponse.ok) {
-      console.log('✅ Pedido enviado pro DiaLOG com sucesso:', order.order_number);
-      console.log('📧 Cliente receberá email com tracking');
-    } else {
-      console.error('❌ Erro ao enviar pro DiaLOG:', dialogData);
-    }
-
-  } catch (error) {
-    console.error('❌ Erro ao enviar pro DiaLOG:', error);
-
-    // Registrar erro no log
-    await supabase
-      .from('dialog_webhook_logs')
-      .insert([{
-        order_id: order.id,
-        order_number: order.order_number,
-        status_code: 0,
-        error_message: error.message,
-        retry_count: 0
-      }]);
+    console.error('❌ Erro no webhook:', error)
+    console.error('Stack:', error.stack)
+    // Retornar 200 mesmo com erro pra não ficar reenviando
+    return res.status(200).json({ received: true, error: error.message })
   }
 }

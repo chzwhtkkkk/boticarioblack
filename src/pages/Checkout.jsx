@@ -47,17 +47,17 @@ const Checkout = () => {
   }, [])
 
   // Função para iniciar polling de verificação de pagamento
-  const startPaymentPolling = (transactionId) => {
-    console.log('🔄 Iniciando polling para transação:', transactionId)
+  const startPaymentPolling = (paymentId) => {
+    console.log('🔄 Iniciando polling para pagamento:', paymentId)
     
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`/api/flevopay/check-status?transaction_id=${transactionId}`)
+        const response = await fetch(`/api/avenpay/check-status?payment_id=${paymentId}`)
         const data = await response.json()
         
         console.log('📊 Status:', data.status)
         
-        if (data.status === 'paid') {
+        if (data.status === 'PAID') {
           // Pagamento aprovado!
           clearInterval(interval)
           setPollingInterval(null)
@@ -66,10 +66,13 @@ const Checkout = () => {
           
           // Disparar evento de conversão
           trackPurchase({
-            orderId: pixData.reference,
+            orderId: pixData.external_ref,
             items: cart,
             total: getTotalWithShipping()
           })
+          
+          // Limpar carrinho
+          clearCart()
           
           // Capturar UTMs da URL atual
           const urlParams = new URLSearchParams(window.location.search)
@@ -81,8 +84,7 @@ const Checkout = () => {
           }
           
           // Redirecionar para página de sucesso com UTMs
-          const redirectUrl = data.redirect_url + (utmParams.toString() ? `&${utmParams.toString()}` : '')
-          window.location.href = redirectUrl
+          navigate(`/sucesso?order_id=${data.payment_id}&${utmParams.toString()}`)
         }
       } catch (error) {
         console.error('❌ Erro no polling:', error)
@@ -228,13 +230,13 @@ const Checkout = () => {
       const utms = getUTMs()
       const subids = getSubids()
 
-      // Preparar dados para FlevoPay
-      const transactionData = {
+      // Preparar dados para Avenpay
+      const paymentData = {
         customer: {
           name: formData.name.trim(),
           email: formData.email.trim(),
           phone: formData.phone.replace(/\D/g, ''),
-          cpf: formData.cpf.replace(/\D/g, '')
+          document: formData.cpf.replace(/\D/g, '')
         },
         cart: cart.map(item => ({
           id: item.id,
@@ -255,15 +257,15 @@ const Checkout = () => {
         tracking: utms || {}
       }
 
-      console.log('📤 Criando transação FlevoPay...', transactionData)
+      console.log('📤 Criando pagamento Avenpay...', paymentData)
 
       // Chamar API para criar PIX
-      const response = await fetch('/api/flevopay/create-transaction', {
+      const response = await fetch('/api/avenpay/create-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(transactionData)
+        body: JSON.stringify(paymentData)
       })
 
       const paymentResponse = await response.json()
@@ -279,7 +281,7 @@ const Checkout = () => {
       setShowPixModal(true)
 
       // Iniciar polling para verificar pagamento
-      startPaymentPolling(paymentResponse.transaction_id)
+      startPaymentPolling(paymentResponse.payment_id)
 
     } catch (error) {
       alert('Erro ao processar pedido: ' + error.message)
@@ -681,12 +683,15 @@ const Checkout = () => {
 
             {/* QR Code */}
             <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-6 mb-4 flex justify-center">
-              {pixData.qr_code_base64 ? (
-                <img 
-                  src={pixData.qr_code_base64} 
-                  alt="QR Code PIX" 
-                  className="w-64 h-64"
-                />
+              {pixData.qr_code ? (
+                <div className="w-64 h-64 flex flex-col items-center justify-center">
+                  <svg className="w-24 h-24 text-green-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                  </svg>
+                  <p className="text-sm text-gray-600 text-center">
+                    Abra o app do seu banco e escaneie o código Pix Copia e Cola abaixo
+                  </p>
+                </div>
               ) : (
                 <div className="w-64 h-64 bg-gray-200 flex items-center justify-center">
                   <p className="text-gray-500">QR Code indisponível</p>
@@ -697,7 +702,7 @@ const Checkout = () => {
             {/* Código Copia e Cola */}
             <div className="mb-4">
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Ou use o código Pix Copia e Cola:
+                Código Pix Copia e Cola:
               </label>
               <div className="bg-gray-50 border border-gray-300 rounded-lg p-3 break-all text-xs font-mono">
                 {pixData.qr_code}
@@ -725,7 +730,7 @@ const Checkout = () => {
 
             {/* Info */}
             <div className="text-xs text-gray-500 text-center">
-              <p>Pedido: {pixData.reference}</p>
+              <p>Pedido: {pixData.external_ref}</p>
               <p>Valor: R$ {(pixData.amount / 100).toFixed(2)}</p>
             </div>
           </div>
