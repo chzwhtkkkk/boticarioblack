@@ -51,9 +51,28 @@ const Checkout = () => {
   const startPaymentPolling = (paymentId) => {
     console.log('🔄 Iniciando polling para pagamento:', paymentId)
     
+    let attempts = 0
+    const maxAttempts = 100 // 100 * 3s = 5 minutos max
+    
     const interval = setInterval(async () => {
+      attempts++
+      
+      // Parar após 5 minutos
+      if (attempts > maxAttempts) {
+        console.log('⏱️ Timeout: polling parado após 5 minutos')
+        clearInterval(interval)
+        setPollingInterval(null)
+        return
+      }
+      
       try {
         const response = await fetch(`/api/avenpay/check-status?payment_id=${paymentId}`)
+        
+        if (!response.ok) {
+          console.error('❌ Erro ao consultar status:', response.status)
+          return
+        }
+        
         const data = await response.json()
         
         console.log('📊 Status:', data.status)
@@ -703,7 +722,23 @@ const Checkout = () => {
       {/* Modal do QR Code PIX */}
       {showPixModal && pixData && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg max-w-md w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 my-8 max-h-[90vh] overflow-y-auto relative">
+            {/* Botão Fechar */}
+            <button
+              onClick={() => {
+                setShowPixModal(false)
+                if (pollingInterval) {
+                  clearInterval(pollingInterval)
+                  setPollingInterval(null)
+                }
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
             <div className="text-center mb-4">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
                 <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
