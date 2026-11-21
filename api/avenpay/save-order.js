@@ -120,8 +120,18 @@ export default async function handler(req, res) {
       })
 
       const newCustomers = await createCustomerResponse.json()
+      
+      if (!newCustomers || newCustomers.length === 0) {
+        console.error('❌ Falha ao criar cliente, resposta vazia do Supabase')
+        throw new Error('Falha ao criar cliente no Supabase')
+      }
+      
       customerRecord = newCustomers[0]
       console.log('👤 Cliente criado:', customerRecord.id)
+    }
+    
+    if (!customerRecord || !customerRecord.id) {
+      throw new Error('Cliente não encontrado ou criado')
     }
 
     // 2. Calcular total
@@ -151,6 +161,14 @@ export default async function handler(req, res) {
     })
 
     const orders = await createOrderResponse.json()
+    
+    if (!orders || orders.length === 0) {
+      console.error('❌ Falha ao criar pedido, resposta vazia do Supabase')
+      console.error('Response status:', createOrderResponse.status)
+      console.error('Response body:', orders)
+      throw new Error('Falha ao criar pedido no Supabase')
+    }
+    
     const order = orders[0]
     console.log('📦 Pedido criado:', order.id)
 
