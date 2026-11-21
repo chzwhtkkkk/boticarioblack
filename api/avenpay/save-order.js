@@ -1,10 +1,50 @@
 // API Route: Salvar pedido após pagamento confirmado
 // POST /api/avenpay/save-order
 
-import { sendDialogTrackingWithRetry } from '../utils/sendDialogTracking.js'
-
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://onscojkssuytbqzqgafu.supabase.co'
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uc2Nvamtzc3V5dGJxenFnYWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjgzNDgsImV4cCI6MjA1MDIwNDM0OH0.tu_anu2vYr-vjsjKoGA7mN5vKSN3bYZP1m9wpUL98w8'
+const DIALOG_WEBHOOK_URL = process.env.DIALOG_WEBHOOK_URL || 'https://dnpgrcriaqpcybhzikvh.supabase.co/functions/v1/webhook-checkout/universal/c688fd32-379c-425e-a8ad-cc600ad69539?token=d04d15b2b59f4363a9064194ecb413973e46cc80249b43318d6c72f0f9ce93ae'
+
+// Função para enviar ao DiaLOG
+async function sendDialogTracking(order) {
+  try {
+    const payload = {
+      order_id: order.order_id,
+      status: order.status || 'paid',
+      external_reference: order.external_reference || order.order_id,
+      customer: {
+        name: order.customer.name,
+        email: order.customer.email,
+        phone: order.customer.phone || '',
+        document: order.customer.document || ''
+      },
+      shipping_address: order.shipping_address,
+      products: order.products,
+      total: parseFloat(order.total)
+    }
+
+    const response = await fetch(DIALOG_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const statusCode = response.status
+    const responseBody = await response.text()
+
+    return {
+      success: response.ok,
+      statusCode,
+      responseBody
+    }
+  } catch (error) {
+    return {
+      success: false,
+      statusCode: 0,
+      responseBody: error.message
+    }
+  }
+}
 
 export default async function handler(req, res) {
   // CORS headers
@@ -170,7 +210,7 @@ export default async function handler(req, res) {
       total: parseFloat(total.toFixed(2))
     }
 
-    const dialogResult = await sendDialogTrackingWithRetry(dialogOrder, 3)
+    const dialogResult = await sendDialogTracking(dialogOrder)
 
     // Salvar log do DiaLOG
     await fetch(`${SUPABASE_URL}/rest/v1/dialog_webhook_logs`, {
