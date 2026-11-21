@@ -702,8 +702,8 @@ const Checkout = () => {
 
       {/* Modal do QR Code PIX */}
       {showPixModal && pixData && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
             <div className="text-center mb-4">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
                 <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -715,17 +715,17 @@ const Checkout = () => {
             </div>
 
             {/* QR Code */}
-            <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-6 mb-4 flex justify-center">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 flex justify-center">
               {pixData.qr_code ? (
                 <QRCodeSVG 
                   value={pixData.qr_code} 
-                  size={256}
+                  size={220}
                   level="M"
                   includeMargin={true}
                 />
               ) : (
-                <div className="w-64 h-64 bg-gray-200 flex items-center justify-center">
-                  <p className="text-gray-500">QR Code indisponível</p>
+                <div className="w-56 h-56 bg-gray-200 flex items-center justify-center">
+                  <p className="text-gray-500 text-sm">QR Code indisponível</p>
                 </div>
               )}
             </div>
@@ -735,7 +735,7 @@ const Checkout = () => {
               <label className="text-sm font-medium text-gray-700 mb-2 block">
                 Código Pix Copia e Cola:
               </label>
-              <div className="bg-gray-50 border border-gray-300 rounded-lg p-3 break-all text-xs font-mono">
+              <div className="bg-gray-50 border border-gray-300 rounded-lg p-3 break-all text-xs font-mono max-h-24 overflow-y-auto">
                 {pixData.qr_code}
               </div>
               <button
