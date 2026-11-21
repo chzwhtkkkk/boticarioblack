@@ -63,7 +63,39 @@ const Checkout = () => {
           clearInterval(interval)
           setPollingInterval(null)
           
-          console.log('🎉 Pagamento aprovado! Redirecionando...')
+          console.log('🎉 Pagamento aprovado! Salvando pedido...')
+          
+          // Salvar pedido no Supabase via API
+          try {
+            await fetch('/api/avenpay/save-order', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                payment_id: data.payment_id,
+                customer: {
+                  name: formData.name,
+                  email: formData.email,
+                  phone: formData.phone,
+                  document: formData.cpf
+                },
+                cart: cart,
+                address: {
+                  street: formData.address,
+                  number: formData.number,
+                  complement: formData.complement,
+                  neighborhood: formData.neighborhood,
+                  city: formData.city,
+                  state: formData.state,
+                  cep: formData.cep
+                }
+              })
+            })
+            console.log('✅ Pedido salvo com sucesso!')
+          } catch (saveError) {
+            console.error('❌ Erro ao salvar pedido:', saveError)
+          }
           
           // Disparar evento de conversão
           trackPurchase({
