@@ -88,10 +88,10 @@ export default async function handler(req, res) {
       name: customer.name,
       email: customer.email,
       phone: customer.phone || null,
-      cpf: customer.document || customer.cpf
+      tax_id: (customer.document || customer.cpf || '').replace(/\D/g, '')
     }
 
-    const customerResponse = await fetch(`${SUPABASE_URL}/rest/v1/customers?cpf=eq.${customerData.cpf}`, {
+    const customerResponse = await fetch(`${SUPABASE_URL}/rest/v1/customers?tax_id=eq.${customerData.tax_id}`, {
       method: 'GET',
       headers: {
         'apikey': SUPABASE_ANON_KEY,
@@ -207,7 +207,7 @@ export default async function handler(req, res) {
         name: customerRecord.name,
         email: customerRecord.email,
         phone: customerRecord.phone || '',
-        document: customerRecord.cpf
+        document: customerRecord.tax_id
       },
       shipping_address: address ? {
         street: address.street || address.address || '',

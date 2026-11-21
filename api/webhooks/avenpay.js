@@ -41,10 +41,10 @@ export default async function handler(req, res) {
         name: payment.payer.name,
         email: payment.payer.email,
         phone: payment.payer.phone || null,
-        cpf: payment.payer.taxId
+        tax_id: payment.payer.taxId
       }
 
-      const customerResponse = await fetch(`${SUPABASE_URL}/rest/v1/customers?cpf=eq.${customerData.cpf}`, {
+      const customerResponse = await fetch(`${SUPABASE_URL}/rest/v1/customers?tax_id=eq.${customerData.tax_id}`, {
         method: 'GET',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -73,8 +73,18 @@ export default async function handler(req, res) {
         })
 
         const newCustomers = await createCustomerResponse.json()
+        
+        if (!newCustomers || newCustomers.length === 0) {
+          console.error('❌ Falha ao criar cliente')
+          throw new Error('Falha ao criar cliente no Supabase')
+        }
+        
         customer = newCustomers[0]
         console.log('👤 Cliente criado:', customer.id)
+      }
+      
+      if (!customer || !customer.id) {
+        throw new Error('Cliente não encontrado ou criado')
       }
 
       // 2. Criar pedido
@@ -101,6 +111,13 @@ export default async function handler(req, res) {
       })
 
       const orders = await createOrderResponse.json()
+      
+      if (!orders || orders.length === 0) {
+        console.error('❌ Falha ao criar pedido')
+        console.error('Response:', orders)
+        throw new Error('Falha ao criar pedido no Supabase')
+      }
+      
       const order = orders[0]
       console.log('📦 Pedido criado:', order.id)
 
