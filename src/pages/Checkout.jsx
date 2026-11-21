@@ -67,7 +67,7 @@ const Checkout = () => {
           
           // Disparar evento de conversão
           trackPurchase({
-            orderId: pixData.external_ref,
+            orderId: data.external_ref || data.payment_id,
             items: cart,
             total: getTotalWithShipping()
           })
