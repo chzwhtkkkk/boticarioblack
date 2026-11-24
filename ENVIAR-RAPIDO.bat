@@ -1,57 +1,70 @@
 @echo off
-chcp 65001 > nul
-title 📤 Enviar para GitHub
+cls
+echo ========================================
+echo   ENVIAR PARA GITHUB - RAPIDO
+echo ========================================
+echo.
+echo Repositorio: https://github.com/contavercelchz-alt/botiboti2k26
+echo.
+echo ========================================
+echo   CRIAR TOKEN (SO 1 VEZ)
+echo ========================================
+echo.
+echo 1. Faca login em: contavercelchz-alt
+echo 2. Abra: https://github.com/settings/tokens/new
+echo 3. Em "Note": coloque "Deploy Boticario"
+echo 4. Em "Expiration": selecione "No expiration"
+echo 5. MARQUE APENAS: [x] repo (isso ja marca tudo dentro)
+echo 6. Clique em "Generate token" (botao verde no fim)
+echo 7. COPIE o token (comeca com ghp_...)
+echo.
+echo ========================================
+echo.
+set /p TOKEN="Cole o token aqui: "
 
-REM Verificar se Git está instalado
-git --version >nul 2>&1
-if errorlevel 1 (
-    cls
+if "%TOKEN%"=="" (
     echo.
-    echo ═══════════════════════════════════════════════
-    echo    ❌ GIT NÃO INSTALADO
-    echo ═══════════════════════════════════════════════
-    echo.
-    echo Baixe GitHub Desktop (mais fácil):
-    echo https://desktop.github.com/
-    echo.
-    echo Depois:
-    echo 1. Instale e faça login
-    echo 2. File -^> Add Local Repository
-    echo 3. Escolha esta pasta
-    echo 4. Commit + Push
-    echo.
-    start https://desktop.github.com/
+    echo ERRO: Voce precisa colar o token!
     pause
-    exit
+    exit /b 1
 )
 
-cls
 echo.
-echo 📤 Enviando para GitHub...
+echo Configurando Git...
+git config user.name "contavercelchz-alt"
+git config user.email "contavercelchz.alt@gmail.com"
+git remote remove origin 2>nul
+git remote add origin https://%TOKEN%@github.com/contavercelchz-alt/botiboti2k26.git
+
 echo.
+echo Enviando codigo...
+git push -u origin main --force
 
-git add .
-git commit -m "Atualização: APIs Avenpay + DiaLOG"
-git push
-
-if errorlevel 1 (
+echo.
+if %ERRORLEVEL% EQU 0 (
+    echo ========================================
+    echo   SUCESSO! ✓
+    echo ========================================
     echo.
-    echo ❌ Erro! Use GitHub Desktop:
-    echo https://desktop.github.com/
+    echo Codigo enviado para:
+    echo https://github.com/contavercelchz-alt/botiboti2k26
     echo.
-    pause
-    exit
+    echo PROXIMOS PASSOS:
+    echo 1. Acesse: https://vercel.com
+    echo 2. Import Project
+    echo 3. Selecione: botiboti2k26
+    echo 4. Configure as variaveis de ambiente
+    echo 5. Deploy!
+    echo.
+) else (
+    echo ========================================
+    echo   ERRO! ✗
+    echo ========================================
+    echo.
+    echo Verifique se:
+    echo - O token esta correto
+    echo - O repositorio existe no GitHub
+    echo - Voce marcou "repo" ao criar o token
+    echo.
 )
-
-cls
-echo.
-echo ═══════════════════════════════════════════════
-echo    ✅ ENVIADO COM SUCESSO!
-echo ═══════════════════════════════════════════════
-echo.
-echo 🚀 Vercel vai fazer deploy automático
-echo.
-echo Acompanhe: https://vercel.com/dashboard
-echo.
-
-timeout /t 5
+pause
