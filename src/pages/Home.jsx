@@ -124,6 +124,15 @@ const Home = () => {
       {/* KITS BLACK FRIDAY - Clean */}
       <section id="kits" className="py-8">
         <div className="container mx-auto px-4">
+          {/* Imagem de Apresentação */}
+          <div className="mb-8">
+            <img 
+              src="/images/foto site.png"
+              alt="Black Friday O Boticário"
+              className="w-full max-w-6xl mx-auto rounded-lg shadow-md"
+            />
+          </div>
+
           {/* Título Simples e Elegante */}
           <div className="mb-6">
             <h2 className="text-2xl md:text-3xl font-light text-gray-900 mb-2">
