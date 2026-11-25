@@ -29,6 +29,7 @@ import ExemploEnviando from './pages/ExemploEnviando'
 import Sucesso from './pages/Sucesso'
 import Settings from './pages/Settings'
 import Admin from './pages/Admin'
+import PaymentPix from './pages/PaymentPix'
 
 function App() {
   // Inicializa tracking de UTMs quando o app carrega
@@ -50,6 +51,7 @@ function App() {
               <Route path="/busca" element={<SearchResults />} />
               <Route path="/carrinho" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/pagamento-pix" element={<PaymentPix />} />
               <Route path="/pedido-confirmado" element={<OrderSuccess />} />
               <Route path="/sucesso" element={<Sucesso />} />
               <Route path="/meus-pedidos" element={<MyOrders />} />

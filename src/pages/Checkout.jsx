@@ -5,7 +5,6 @@ import { trackInitiateCheckout, trackPurchase, getUTMs, getSubids } from '../uti
 import { formatPrice } from '../utils/formatPrice'
 import PromoCountdown from '../components/PromoCountdown'
 import SocialProofNotification from '../components/SocialProofNotification'
-import { QRCodeSVG } from 'qrcode.react'
 
 const Checkout = () => {
   const navigate = useNavigate()
@@ -29,130 +28,13 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [shippingOption, setShippingOption] = useState('retirada') // retirada, gratis, expresso
   const [expressPrice] = useState((Math.random() * 8 + 1).toFixed(2)) // Preço aleatório entre 1.00 e 9.99
-  const [pixData, setPixData] = useState(null) // Dados do PIX gerado
-  const [showPixModal, setShowPixModal] = useState(false) // Modal do QR Code
-  const [pollingInterval, setPollingInterval] = useState(null) // Intervalo do polling
 
   // Track InitiateCheckout quando entrar na página
   useEffect(() => {
     if (cart.length > 0) {
       trackInitiateCheckout(cart, getCartTotal())
     }
-    
-    // Cleanup: parar polling quando sair da página
-    return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval)
-      }
-    }
   }, [])
-
-  // Função para iniciar polling de verificação de pagamento
-  const startPaymentPolling = (paymentId) => {
-    console.log('🔄 Iniciando polling para pagamento:', paymentId)
-    
-    let attempts = 0
-    const maxAttempts = 100 // 100 * 3s = 5 minutos max
-    
-    const interval = setInterval(async () => {
-      attempts++
-      
-      // Parar após 5 minutos
-      if (attempts > maxAttempts) {
-        console.log('⏱️ Timeout: polling parado após 5 minutos')
-        clearInterval(interval)
-        setPollingInterval(null)
-        return
-      }
-      
-      try {
-        const response = await fetch(`/api/avenpay/check-status?payment_id=${paymentId}`)
-        
-        if (!response.ok) {
-          console.error('❌ Erro ao consultar status:', response.status)
-          return
-        }
-        
-        const data = await response.json()
-        
-        console.log('📊 Status:', data.status)
-        
-        if (data.status === 'PAID') {
-          // Pagamento aprovado!
-          clearInterval(interval)
-          setPollingInterval(null)
-          
-          console.log('🎉 Pagamento aprovado! Salvando pedido...')
-          
-          // Salvar pedido no Supabase via API
-          try {
-            await fetch('/api/avenpay/save-order', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                payment_id: data.payment_id,
-                customer: {
-                  name: formData.name,
-                  email: formData.email,
-                  phone: formData.phone,
-                  document: formData.cpf
-                },
-                cart: cart,
-                address: {
-                  street: formData.address,
-                  number: formData.number,
-                  complement: formData.complement,
-                  neighborhood: formData.neighborhood,
-                  city: formData.city,
-                  state: formData.state,
-                  cep: formData.cep
-                }
-              })
-            })
-            console.log('✅ Pedido salvo com sucesso!')
-          } catch (saveError) {
-            console.error('❌ Erro ao salvar pedido:', saveError)
-          }
-          
-          // Disparar evento de conversão
-          trackPurchase({
-            orderId: data.external_ref || data.payment_id,
-            items: cart,
-            total: getTotalWithShipping()
-          })
-          
-          // Limpar carrinho
-          clearCart()
-          
-          // Capturar UTMs da URL atual
-          const urlParams = new URLSearchParams(window.location.search)
-          const utmParams = new URLSearchParams()
-          for (const [key, value] of urlParams) {
-            if (key.startsWith('utm_') || key === 'src' || key === 'sck') {
-              utmParams.append(key, value)
-            }
-          }
-          
-          // Redirecionar para página de sucesso com UTMs
-          navigate(`/sucesso?order_id=${data.payment_id}&${utmParams.toString()}`)
-        }
-      } catch (error) {
-        console.error('❌ Erro no polling:', error)
-      }
-    }, 3000) // Verificar a cada 3 segundos
-    
-    setPollingInterval(interval)
-  }
-
-  // Função para copiar código PIX
-  const copyPixCode = () => {
-    if (pixData?.qr_code) {
-      navigator.clipboard.writeText(pixData.qr_code)
-      alert('Código PIX copiado!')
-    }
-  }
 
   if (cart.length === 0) {
     navigate('/produtos')
@@ -328,12 +210,15 @@ const Checkout = () => {
 
       console.log('✅ PIX gerado com sucesso:', paymentResponse)
 
-      // Salvar dados do PIX
-      setPixData(paymentResponse)
-      setShowPixModal(true)
-
-      // Iniciar polling para verificar pagamento
-      startPaymentPolling(paymentResponse.payment_id)
+      // Redirecionar para página de pagamento PIX
+      navigate('/pagamento-pix', {
+        state: {
+          pixData: paymentResponse,
+          cart: cart,
+          formData: formData,
+          shippingOption: shippingOption
+        }
+      })
 
     } catch (error) {
       alert('Erro ao processar pedido: ' + error.message)
@@ -718,90 +603,6 @@ const Checkout = () => {
           </div>
         </div>
       </div>
-
-      {/* Modal do QR Code PIX */}
-      {showPixModal && pixData && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg max-w-md w-full p-6 my-8 max-h-[90vh] overflow-y-auto relative">
-            {/* Botão Fechar */}
-            <button
-              onClick={() => {
-                setShowPixModal(false)
-                if (pollingInterval) {
-                  clearInterval(pollingInterval)
-                  setPollingInterval(null)
-                }
-              }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Pedido Criado!</h2>
-              <p className="text-gray-600">Escaneie o QR Code para pagar</p>
-            </div>
-
-            {/* QR Code */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 flex justify-center">
-              {pixData.qr_code ? (
-                <QRCodeSVG 
-                  value={pixData.qr_code} 
-                  size={220}
-                  level="M"
-                  includeMargin={true}
-                />
-              ) : (
-                <div className="w-56 h-56 bg-gray-200 flex items-center justify-center">
-                  <p className="text-gray-500 text-sm">QR Code indisponível</p>
-                </div>
-              )}
-            </div>
-
-            {/* Código Copia e Cola */}
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Código Pix Copia e Cola:
-              </label>
-              <div className="bg-gray-50 border border-gray-300 rounded-lg p-3 break-all text-xs font-mono max-h-24 overflow-y-auto">
-                {pixData.qr_code}
-              </div>
-              <button
-                onClick={copyPixCode}
-                className="w-full mt-2 bg-[#246c61] hover:bg-[#1d5850] text-white font-medium py-2 rounded-lg transition-colors"
-              >
-                Copiar Código PIX
-              </button>
-            </div>
-
-            {/* Status */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
-                <span className="text-sm font-medium text-blue-900">
-                  Aguardando pagamento...
-                </span>
-              </div>
-              <p className="text-xs text-blue-700 mt-2">
-                Assim que confirmarmos o pagamento, você será redirecionado automaticamente.
-              </p>
-            </div>
-
-            {/* Info */}
-            <div className="text-xs text-gray-500 text-center">
-              <p>Pedido: {pixData.external_ref}</p>
-              <p>Valor: R$ {(pixData.amount / 100).toFixed(2)}</p>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }
