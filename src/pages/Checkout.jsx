@@ -239,8 +239,8 @@ const Checkout = () => {
         <div className="bg-white shadow-sm mb-4">
           <div className="container mx-auto px-4 py-3">
             <img 
-              src="/images/banner-checkout-certo.png"
-              alt="Promoção Dia dos Namorados"
+              src="/images/banner checkout black.png"
+              alt="Promoção Black Friday"
               className="w-full max-w-4xl mx-auto rounded-lg shadow-md"
             />
           </div>
