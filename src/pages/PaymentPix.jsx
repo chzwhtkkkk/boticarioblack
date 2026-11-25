@@ -279,7 +279,7 @@ const PaymentPix = () => {
                   <div>
                     <p className="font-bold text-gray-900 text-xs md:text-sm mb-1">Informação Importante:</p>
                     <p className="text-xs md:text-sm text-gray-700">
-                      O recebedor deste pagamento é <span className="font-bold text-blue-600">PAGAR ME PAGAMENTOS</span>, 
+                      O recebedor deste pagamento é <span className="font-bold text-blue-600">PAGAR ME PAGAMENTOS</span> ou <span className="font-bold text-blue-600">PRIME SOLUTIONS BUSINESS LTDA</span>, 
                       parceiro autorizado O Boticário para processamento de pagamentos.
                     </p>
                   </div>
