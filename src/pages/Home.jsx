@@ -48,11 +48,11 @@ const Home = () => {
 
   return (
     <div className="bg-white">
-      {/* TOP BANNER - Simples */}
-      <div className="bg-black text-white py-2 border-b-2 border-yellow-400">
+      {/* TOP BANNER - Black Friday */}
+      <div className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white py-3 border-b-4 border-yellow-400 shadow-lg">
         <div className="container mx-auto px-4">
-          <p className="text-center text-xs md:text-sm">
-            🖤 BLACK FRIDAY | Descontos de até 75% + Frete Grátis para todo o Brasil
+          <p className="text-center text-sm md:text-base font-bold animate-pulse">
+            ⚡ BLACK FRIDAY | Descontos de até 75% + Frete GRÁTIS para todo o Brasil ⚡
           </p>
         </div>
       </div>
@@ -82,29 +82,29 @@ const Home = () => {
               onClick={() => {
                 document.getElementById('kits')?.scrollIntoView({ behavior: 'smooth' })
               }}
-              className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white hover:bg-gray-100 text-gray-800 font-bold py-3 px-8 rounded-full shadow-xl transition-all hover:scale-105 flex items-center gap-2"
+              className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-bold py-4 px-10 rounded-full shadow-2xl transition-all hover:scale-110 flex items-center gap-2 text-lg border-2 border-black"
             >
-              Aproveite
+              🔥 APROVEITAR AGORA
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
               </svg>
             </button>
 
             {/* Setas de Navegação */}
             <button
               onClick={() => setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-colors"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black rounded-full p-3 shadow-lg transition-all hover:scale-110"
             >
-              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <button
               onClick={() => setCurrentBanner((prev) => (prev + 1) % banners.length)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black rounded-full p-3 shadow-lg transition-all hover:scale-110"
             >
-              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
               </svg>
             </button>
 
@@ -115,7 +115,7 @@ const Home = () => {
                   key={index}
                   onClick={() => setCurrentBanner(index)}
                   className={`h-2 rounded-full transition-all ${
-                    index === currentBanner ? 'w-8 bg-white' : 'w-2 bg-white/50'
+                    index === currentBanner ? 'w-8 bg-yellow-400' : 'w-2 bg-white/60'
                   }`}
                 />
               ))}
@@ -124,20 +124,67 @@ const Home = () => {
         </div>
       </section>
 
+      {/* HERO SECTION BLACK FRIDAY - Nova */}
+      <section className="bg-gradient-to-r from-gray-900 via-black to-gray-900 py-6 mb-6 shadow-2xl">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            {/* Badges de Destaque */}
+            <div className="flex flex-wrap justify-center gap-3 mb-4">
+              <span className="bg-yellow-400 text-black px-4 py-2 rounded-full font-bold text-xs md:text-sm shadow-lg flex items-center gap-2">
+                🔥 ATÉ 75% OFF
+              </span>
+              <span className="bg-green-500 text-white px-4 py-2 rounded-full font-bold text-xs md:text-sm shadow-lg flex items-center gap-2">
+                📦 FRETE GRÁTIS
+              </span>
+              <span className="bg-purple-600 text-white px-4 py-2 rounded-full font-bold text-xs md:text-sm shadow-lg flex items-center gap-2">
+                ⚡ ESTOQUE LIMITADO
+              </span>
+            </div>
+            
+            {/* Título Principal */}
+            <h1 className="text-3xl md:text-5xl font-black text-center text-white mb-3 drop-shadow-2xl">
+              BLACK FRIDAY <span className="text-yellow-400">O BOTICÁRIO</span>
+            </h1>
+            
+            {/* Subtítulo */}
+            <p className="text-center text-white text-sm md:text-lg mb-5 max-w-2xl mx-auto">
+              Kits e Presentes Exclusivos com os maiores descontos do ano! 
+              <span className="text-yellow-400 font-bold"> Aproveite antes que acabe! 🎁</span>
+            </p>
+
+            {/* CTA Principal */}
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  document.getElementById('kits')?.scrollIntoView({ behavior: 'smooth' })
+                }}
+                className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-black py-4 px-12 rounded-full shadow-2xl transition-all hover:scale-110 inline-flex items-center gap-3 text-base md:text-xl border-4 border-yellow-300 animate-bounce"
+              >
+                VER OFERTAS IMPERDÍVEIS 🛍️
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* KITS BLACK FRIDAY */}
       <section id="kits" className="py-6 md:py-8">
         <div className="container mx-auto px-4">
-          {/* Título com Veja Mais */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg md:text-xl font-bold text-gray-900">
-              🖤 BLACK FRIDAY | Kits e Presentes com até 75% OFF
-            </h2>
-            <Link to="/produtos" className="text-sm text-gray-600 hover:text-black flex items-center gap-1">
-              Veja Mais
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+          {/* Título com Badge */}
+          <div className="mb-6 text-center">
+            <div className="inline-block bg-black text-yellow-400 px-6 py-3 rounded-full mb-3 font-bold shadow-xl">
+              🖤 OFERTAS RELÂMPAGO BLACK FRIDAY
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-1 w-20 bg-gradient-to-r from-transparent to-yellow-400"></div>
+              <h2 className="text-2xl md:text-3xl font-black text-gray-900">
+                Kits com até <span className="text-red-600">75% OFF</span>
+              </h2>
+              <div className="h-1 w-20 bg-gradient-to-l from-transparent to-yellow-400"></div>
+            </div>
+            <p className="text-gray-600 mt-2 text-sm md:text-base">
+              ⏰ Estoque limitado! Garanta o seu antes que acabe
+            </p>
           </div>
 
           {/* Grid de Produtos BLACK FRIDAY 2024 - 2 colunas no mobile */}
