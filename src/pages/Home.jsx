@@ -124,17 +124,19 @@ const Home = () => {
       {/* KITS BLACK FRIDAY - Clean */}
       <section id="kits" className="py-8">
         <div className="container mx-auto px-4">
-          {/* Imagem de Apresentação */}
-          <div className="mb-8">
+          {/* Imagem de Apresentação - Clicável */}
+          <div className="mb-8 cursor-pointer" onClick={() => {
+            document.getElementById('produtos-promocao')?.scrollIntoView({ behavior: 'smooth' })
+          }}>
             <img 
               src="/images/foto site.png"
-              alt="Black Friday O Boticário"
-              className="w-full max-w-6xl mx-auto rounded-lg shadow-md"
+              alt="Black Friday O Boticário - Clique para ver as ofertas"
+              className="w-full max-w-6xl mx-auto rounded-lg shadow-md hover:shadow-xl transition-shadow"
             />
           </div>
 
           {/* Título Simples e Elegante */}
-          <div className="mb-6">
+          <div id="produtos-promocao" className="mb-6">
             <h2 className="text-2xl md:text-3xl font-light text-gray-900 mb-2">
               Kits e Presentes
             </h2>
