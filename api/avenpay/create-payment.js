@@ -1,5 +1,6 @@
 // API Route: Criar Pagamento PIX via Avenpay
 // POST /api/avenpay/create-payment
+// Documentação: https://api.avenpayments.com/v1/ (atualizada 2026)
 
 const AVENPAY_API_KEY = process.env.AVENPAY_API_KEY || 'd_5SKkAF0pnKaSJ0OLKrsPdbr9LRcw8Qyox6Kz1keXw'
 const AVENPAY_API_URL = 'https://api.avenpayments.com/v1/payment'
@@ -53,21 +54,23 @@ export default async function handler(req, res) {
       })
     }
 
-    // Preparar dados do cliente
+    // Preparar dados do cliente (payer)
     const timestamp = Date.now()
     const customerData = {
       name: customer.name || 'Cliente',
       email: customer.email || `cliente_${timestamp}@oboticario.com.br`,
-      taxId: cpf.replace(/\D/g, ''),
-      phone: customer.phone?.replace(/\D/g, '') || '11999999999'
+      taxId: cpf.replace(/\D/g, ''), // Obrigatório para BRL (CPF ou CNPJ)
+      phone: customer.phone?.replace(/\D/g, '') 
+        ? `+55${customer.phone.replace(/\D/g, '')}` 
+        : '+5511999999999' // Formato internacional obrigatório
     }
 
-    // Preparar itens
+    // Preparar itens (products)
     const items = cart.map(item => ({
       quantity: item.quantity || 1,
-      name: item.name,
-      price: Math.round(item.price * 100), // Converter pra centavos
-      type: 'PHYSICAL' // Todos os produtos têm entrega
+      name: item.name.substring(0, 256), // Max 256 chars
+      price: Math.round(item.price * 100), // Centavos (smallest unit)
+      type: 'PHYSICAL' // PHYSICAL = tem entrega | DIGITAL = sem entrega
     }))
 
     // Calcular amount total em centavos
@@ -76,53 +79,56 @@ export default async function handler(req, res) {
     // Gerar referência única
     const reference = `ORD-${timestamp}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
 
-    // Preparar descrição
+    // Preparar descrição (5-255 chars)
     const productNames = cart.map(item => item.name).join(', ')
-    const description = productNames.length > 250 
-      ? productNames.substring(0, 247) + '...' 
+    const description = productNames.length > 255 
+      ? productNames.substring(0, 252) + '...' 
+      : productNames.length < 5
+      ? 'Pedido O Boticário'
       : productNames
 
-    // Montar payload para Avenpay
+    // Montar payload para Avenpay (v1 API)
     const payload = {
-      amount: amount,
-      currency: 'BRL',
-      method: 'PIX',
-      description: description,
-      externalRef: reference,
-      notificationUrl: `https://vendasoboticario.vercel.app/api/webhooks/avenpay`,
-      ip: req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || '127.0.0.1',
-      payer: customerData,
-      items: items,
+      amount: amount, // Integer em centavos (smallest unit)
+      currency: 'BRL', // ISO 4217
+      method: 'PIX', // PIX | CREDIT_CARD | BOLETO
+      description: description, // 5-255 chars
+      externalRef: reference, // Sua referência interna
+      notificationUrl: `https://vendasoboticario.vercel.app/api/webhooks/avenpay`, // Webhook endpoint
+      ip: req.headers['x-forwarded-for']?.split(',')[0] || req.headers['x-real-ip'] || '127.0.0.1', // IP do comprador (não do servidor)
+      payer: customerData, // name, taxId (CPF/CNPJ obrigatório em BRL), email, phone
+      items: items, // quantity, name, price (centavos), type (PHYSICAL | DIGITAL)
       metadata: {
-        provider: 'oboticario-vendas',
+        provider: 'oboticario-vendas', // Max 50 chars
         orderId: reference,
-        sellerTaxId: '00000000000191', // CNPJ genérico
+        sellerTaxId: '00000000000191',
         sellerEmail: 'contato@oboticario.com.br',
         checkoutUrl: 'https://vendasoboticario.vercel.app/checkout',
-        returnUrl: 'https://vendasoboticario.vercel.app/sucesso',
+        returnUrl: 'https://vendasoboticario.vercel.app/sucesso', // Para 3DS (mesmo origin do checkout)
         shopUrl: 'https://vendasoboticario.vercel.app',
         referrerLink: null,
-        extra: JSON.stringify({ cart, address })
+        extra: JSON.stringify({ cart, address }) // Dados customizados
       }
     }
 
-    // Adicionar endereço se fornecido (obrigatório quando tem item PHYSICAL)
+    // Adicionar endereço de entrega (obrigatório quando tem item PHYSICAL)
+    // Formato da API v1: zipCode, country, state, city, district (neighborhood), street, number, complement
     if (address) {
       payload.delivery = {
-        fee: 0, // Frete grátis
+        fee: 0, // Taxa de entrega em centavos (não somado ao amount)
         address: {
           country: 'BR',
           state: address.state || 'SP',
           city: address.city || 'São Paulo',
-          district: address.neighborhood || 'Centro',
+          district: address.neighborhood || 'Centro', // "district" na API = neighborhood
           street: address.street || address.address || 'Rua Exemplo',
           number: address.number || 'S/N',
-          zipCode: address.cep?.replace(/\D/g, '') || address.zipCode?.replace(/\D/g, '') || '01001000',
+          zipCode: (address.cep || address.zipCode || '01001000').replace(/\D/g, ''), // Sem traço
           complement: address.complement || ''
         }
       }
     } else {
-      // Endereço padrão se não fornecido
+      // Endereço padrão quando não fornecido
       payload.delivery = {
         fee: 0,
         address: {
@@ -137,7 +143,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Adicionar UTMs se fornecido
+    // Adicionar UTMs (tracking de origem)
     if (tracking) {
       payload.utms = {
         utmSource: tracking.utm_source || tracking.utmSource || null,
@@ -145,19 +151,19 @@ export default async function handler(req, res) {
         utmCampaign: tracking.utm_campaign || tracking.utmCampaign || null,
         utmContent: tracking.utm_content || tracking.utmContent || null,
         utmTerm: tracking.utm_term || tracking.utmTerm || null,
-        src: tracking.src || null,
-        sck: tracking.sck || null
+        src: tracking.src || null, // Source custom
+        sck: tracking.sck || null  // Source custom key
       }
     }
 
     console.log('📤 [CREATE-PAYMENT] Payload preparado')
-    console.log('📤 [CREATE-PAYMENT] Enviando para Avenpay...')
+    console.log('📤 [CREATE-PAYMENT] Enviando para Avenpay API v1...')
 
-    // Chamar API da Avenpay
+    // Chamar API da Avenpay com Bearer token (api-key, não saque-key)
     const response = await fetch(AVENPAY_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${AVENPAY_API_KEY}`,
+        'Authorization': `Bearer ${AVENPAY_API_KEY}`, // Bearer token authentication
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
@@ -170,22 +176,39 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       console.error('❌ [CREATE-PAYMENT] Erro da Avenpay:', data)
-      throw new Error(data.message || data.error || `Erro ${response.status} ao criar pagamento`)
+      
+      // Tratar erros específicos da API
+      const errorCode = data.code || 'unknown'
+      const errorMessage = data.message || `Erro ${response.status} ao criar pagamento`
+      
+      // Status codes: 400 (validation), 401 (auth), 403 (not allowed), 422 (business rule), 429 (rate limit), 502 (provider)
+      console.error('❌ [CREATE-PAYMENT] Error code:', errorCode)
+      
+      throw new Error(errorMessage)
     }
 
-    // Extrair dados do PIX
+    // Extrair dados do PIX da resposta
+    // Resposta v1 API: { id, amount, method, currency, status, data: { copypaste, e2e }, splits, fees, ... }
     const pixData = data.data || {}
 
     // Retornar sucesso com dados do PIX
     return res.status(200).json({
       success: true,
-      payment_id: data.id,
-      external_ref: reference,
-      qr_code: pixData.copypaste,
-      qr_code_base64: null, // Avenpay não retorna base64, só copypaste
-      amount: data.amount,
-      status: data.status,
-      created_at: data.createdAt,
+      payment_id: data.id, // ID do pagamento na Avenpay
+      external_ref: reference, // Referência interna
+      qr_code: pixData.copypaste, // Código PIX copia e cola
+      qr_code_base64: null, // Avenpay não retorna base64, apenas copypaste
+      amount: data.amount, // Amount em centavos
+      currency: data.currency, // BRL
+      status: data.status, // PENDING | PROCESSING | PAID | REFUSED | REFUNDED | MED | CHARGEDBACK
+      created_at: data.createdAt, // ISO 8601 UTC
+      paid_at: data.paidAt, // null até ser pago
+      // Novos campos da API v1
+      installments: data.installments, // 1 para PIX
+      fees: data.fees, // { amount, payFeeAmount, chkFeeAmount, memFeeAmount }
+      splits: data.splits, // Array de splits (divisão de valores)
+      e2e: pixData.e2e, // End-to-end ID (preenchido após pagamento)
+      // Dados originais
       customer: customerData,
       cart: cart
     })
