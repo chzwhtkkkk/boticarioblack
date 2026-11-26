@@ -88,7 +88,7 @@ export default async function handler(req, res) {
       method: 'PIX',
       description: description,
       externalRef: reference,
-      notificationUrl: `https://oboticariovendas.vercel.app/api/webhooks/avenpay`,
+      notificationUrl: `https://vendasoboticario.vercel.app/api/webhooks/avenpay`,
       ip: req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || '127.0.0.1',
       payer: customerData,
       items: items,
@@ -97,9 +97,9 @@ export default async function handler(req, res) {
         orderId: reference,
         sellerTaxId: '00000000000191', // CNPJ genérico
         sellerEmail: 'contato@oboticario.com.br',
-        checkoutUrl: 'https://oboticariovendas.vercel.app/checkout',
-        returnUrl: 'https://oboticariovendas.vercel.app/sucesso',
-        shopUrl: 'https://oboticariovendas.vercel.app',
+        checkoutUrl: 'https://vendasoboticario.vercel.app/checkout',
+        returnUrl: 'https://vendasoboticario.vercel.app/sucesso',
+        shopUrl: 'https://vendasoboticario.vercel.app',
         referrerLink: null,
         extra: JSON.stringify({ cart, address })
       }
