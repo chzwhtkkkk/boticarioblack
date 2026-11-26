@@ -79,34 +79,20 @@ export default async function handler(req, res) {
     // Gerar referência única
     const reference = `ORD-${timestamp}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
 
-    // Preparar descrição - IMPORTANTE: nome do produto, não "Pedido 1234"
-    // Exemplo: "Malbec Desodorante Colônia, Nativa Spa Creme Hidratante"
+    // Preparar descrição (5-255 chars)
     const productNames = cart.map(item => item.name).join(', ')
     const description = productNames.length > 255 
       ? productNames.substring(0, 252) + '...' 
       : productNames.length < 5
-      ? cart[0]?.name || 'Produto O Boticário' // Sempre nome do produto
+      ? 'Pedido O Boticário'
       : productNames
-
-    // ⚠️ NOVIDADE AVENPAY: sourceUrl obrigatório para PIX (segurança)
-    // Link da página do produto no site (não pode ser homepage nem genérico)
-    // Pegamos o primeiro produto do carrinho como referência
-    const firstProduct = cart[0]
-    const productSlug = firstProduct.name
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
-      .replace(/[^a-z0-9]+/g, '-') // Substitui caracteres especiais por -
-      .replace(/^-+|-+$/g, '') // Remove - do início e fim
-    
-    const sourceUrl = `https://vendasoboticario.vercel.app/produto/${productSlug}` // URL específica do produto
 
     // Montar payload para Avenpay (v1 API)
     const payload = {
       amount: amount, // Integer em centavos (smallest unit)
       currency: 'BRL', // ISO 4217
       method: 'PIX', // PIX | CREDIT_CARD | BOLETO
-      description: description, // Nome do produto (não "Pedido 1234")
-      sourceUrl: sourceUrl, // ⚠️ OBRIGATÓRIO para PIX - URL específica do produto
+      description: description, // 5-255 chars
       externalRef: reference, // Sua referência interna
       notificationUrl: `https://vendasoboticario.vercel.app/api/webhooks/avenpay`, // Webhook endpoint
       ip: req.headers['x-forwarded-for']?.split(',')[0] || req.headers['x-real-ip'] || '127.0.0.1', // IP do comprador (não do servidor)
