@@ -23,7 +23,8 @@ export default async function handler(req, res) {
   try {
     const { customer, cart, total, address, tracking } = req.body
 
-    console.log('📥 Request body:', JSON.stringify(req.body, null, 2))
+    console.log('📥 [CREATE-PAYMENT] Request recebido')
+    console.log('📥 [CREATE-PAYMENT] Body:', JSON.stringify(req.body, null, 2))
 
     // Validações
     if (!customer || !cart || !total) {
@@ -149,7 +150,8 @@ export default async function handler(req, res) {
       }
     }
 
-    console.log('📤 Enviando para Avenpay:', JSON.stringify(payload, null, 2))
+    console.log('📤 [CREATE-PAYMENT] Payload preparado')
+    console.log('📤 [CREATE-PAYMENT] Enviando para Avenpay...')
 
     // Chamar API da Avenpay
     const response = await fetch(AVENPAY_API_URL, {
@@ -163,11 +165,12 @@ export default async function handler(req, res) {
 
     const data = await response.json()
 
-    console.log('📥 Resposta Avenpay:', JSON.stringify(data, null, 2))
-    console.log('📥 Status HTTP:', response.status)
+    console.log('📥 [CREATE-PAYMENT] Status HTTP:', response.status)
+    console.log('📥 [CREATE-PAYMENT] Resposta Avenpay:', JSON.stringify(data, null, 2))
 
     if (!response.ok) {
-      throw new Error(data.message || `Erro ${response.status} ao criar pagamento`)
+      console.error('❌ [CREATE-PAYMENT] Erro da Avenpay:', data)
+      throw new Error(data.message || data.error || `Erro ${response.status} ao criar pagamento`)
     }
 
     // Extrair dados do PIX
@@ -188,12 +191,13 @@ export default async function handler(req, res) {
     })
 
   } catch (error) {
-    console.error('❌ Erro ao criar pagamento:', error)
-    console.error('Stack trace:', error.stack)
+    console.error('❌ [CREATE-PAYMENT] Erro capturado:', error.message)
+    console.error('❌ [CREATE-PAYMENT] Stack:', error.stack)
+    
     return res.status(500).json({
       success: false,
-      error: error.message || 'Erro interno ao processar pagamento',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: error.message || 'Erro ao processar pagamento. Tente novamente.',
+      details: process.env.NODE_ENV === 'development' ? error.stack : 'Entre em contato com o suporte'
     })
   }
 }
