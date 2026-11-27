@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { formatPrice } from '../utils/formatPrice'
+import * as metaPixel from '../services/metaPixel'
+import * as utmify from '../services/utmify'
 
 const PaymentPix = () => {
   const navigate = useNavigate()
@@ -52,6 +54,34 @@ const PaymentPix = () => {
           if (pollingInterval) {
             clearInterval(pollingInterval)
           }
+          
+          // 🎯 DISPARAR PURCHASE IMEDIATAMENTE quando PIX é confirmado
+          const orderTotal = pixData.amount / 100 // Converter de centavos para reais
+          const orderId = `ORD-${data.payment_id}`
+          
+          // Marcar como rastreado para evitar duplicação na página Sucesso
+          sessionStorage.setItem(`purchase_tracked_${orderId}`, 'true')
+          
+          console.log('🎯 PIX PAGO! Disparando Purchase event:', {
+            orderId,
+            total: orderTotal,
+            items: cart.length
+          })
+          
+          // Disparar Meta Pixel Purchase
+          metaPixel.trackPurchase(
+            orderId,
+            cart,
+            orderTotal,
+            {
+              name: formData.name,
+              email: formData.email,
+              phone: formData.phone
+            }
+          )
+          
+          // Disparar Utmify Purchase
+          utmify.trackPurchase(orderId, cart, orderTotal)
           
           // Salvar pedido
           await fetch('/api/avenpay/save-order', {

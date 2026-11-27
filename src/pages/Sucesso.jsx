@@ -17,15 +17,19 @@ const Sucesso = () => {
   }, [orderId])
 
   // Disparar evento de conversão após carregar os dados do pedido
+  // IMPORTANTE: Só dispara se não foi disparado já no PaymentPix
   useEffect(() => {
     if (orderData && orderId && !sessionStorage.getItem(`purchase_tracked_${orderId}`)) {
       // ⚠️ VALIDAÇÃO: Só dispara se tiver total válido > 0
       if (!orderData.total || orderData.total <= 0) {
-        console.warn('⚠️ Purchase não enviado: total inválido', orderData.total)
+        console.warn('⚠️ Purchase não enviado na página Sucesso: total inválido', orderData.total)
         return
       }
 
+      // Marcar como rastreado para evitar duplicação
       sessionStorage.setItem(`purchase_tracked_${orderId}`, 'true')
+      
+      console.log('📊 Disparando Purchase da página Sucesso (fallback)')
       
       // Disparar com dados reais do pedido
       trackPurchase({
