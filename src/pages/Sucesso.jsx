@@ -19,13 +19,19 @@ const Sucesso = () => {
   // Disparar evento de conversão após carregar os dados do pedido
   useEffect(() => {
     if (orderData && orderId && !sessionStorage.getItem(`purchase_tracked_${orderId}`)) {
+      // ⚠️ VALIDAÇÃO: Só dispara se tiver total válido > 0
+      if (!orderData.total || orderData.total <= 0) {
+        console.warn('⚠️ Purchase não enviado: total inválido', orderData.total)
+        return
+      }
+
       sessionStorage.setItem(`purchase_tracked_${orderId}`, 'true')
       
       // Disparar com dados reais do pedido
       trackPurchase({
         orderId: orderId,
         items: orderData.items || [],
-        total: orderData.total || 0
+        total: parseFloat(orderData.total) // Garantir que é número
       })
       console.log('🎯 Conversão rastreada para pedido:', orderId, 'Total:', orderData.total)
     }

@@ -160,35 +160,56 @@ export const trackInitiateCheckout = (cart, total) => {
 
 // Rastrear compra finalizada
 export const trackPurchase = (orderId, cart, total, customerData = null) => {
-  if (window.fbq) {
-    const fbc = getFbcParam()
-    const fbp = getFbpParam()
-    
-    const purchaseData = {
-      content_ids: cart.map(item => item.id),
-      contents: cart.map(item => ({
-        id: item.id,
-        quantity: item.quantity,
-        item_price: item.price
-      })),
-      value: total,
-      currency: 'BRL',
-      num_items: cart.reduce((sum, item) => sum + item.quantity, 0)
-    }
-    
-    // Adiciona fbc e fbp se disponíveis
-    if (fbc) {
-      purchaseData.fbc = fbc
-    }
-    if (fbp) {
-      purchaseData.fbp = fbp
-    }
-    
-    // Envia com event_id único para deduplicação
-    window.fbq('track', 'Purchase', purchaseData, {
-      eventID: orderId // Usa orderId como event_id único
-    })
+  if (!window.fbq) {
+    console.warn('⚠️ Meta Pixel não carregado')
+    return
   }
+
+  // ⚠️ VALIDAÇÃO CRÍTICA: valor deve ser numérico e maior que 0
+  const numericTotal = parseFloat(total)
+  if (!numericTotal || numericTotal <= 0 || isNaN(numericTotal)) {
+    console.error('❌ Purchase event NÃO enviado: valor inválido', {
+      total,
+      numericTotal,
+      type: typeof total
+    })
+    return
+  }
+
+  const fbc = getFbcParam()
+  const fbp = getFbpParam()
+  
+  const purchaseData = {
+    content_ids: cart.map(item => item.id),
+    contents: cart.map(item => ({
+      id: item.id,
+      quantity: item.quantity,
+      item_price: item.price
+    })),
+    value: numericTotal, // Sempre número válido > 0
+    currency: 'BRL',
+    num_items: cart.reduce((sum, item) => sum + item.quantity, 0)
+  }
+  
+  // Adiciona fbc e fbp se disponíveis
+  if (fbc) {
+    purchaseData.fbc = fbc
+  }
+  if (fbp) {
+    purchaseData.fbp = fbp
+  }
+  
+  console.log('💰 Meta Pixel Purchase:', {
+    orderId,
+    value: numericTotal,
+    currency: 'BRL',
+    items: cart.length
+  })
+  
+  // Envia com event_id único para deduplicação
+  window.fbq('track', 'Purchase', purchaseData, {
+    eventID: orderId // Usa orderId como event_id único
+  })
 }
 
 // Rastrear lead (quando cliente preenche dados)
