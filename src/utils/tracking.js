@@ -57,21 +57,35 @@ export const trackInitiateCheckout = (cartItems, total) => {
 }
 
 export const trackPurchase = (orderData) => {
-  const contentIds = orderData.items.map(item => item.id)
-  const contents = orderData.items.map(item => ({
-    id: item.id,
-    quantity: item.quantity,
-    item_price: item.price
-  }))
+  // Validar se tem valor válido (maior que 0)
+  if (!orderData.total || orderData.total <= 0) {
+    console.warn('⚠️ Purchase event não enviado: valor inválido ou zero', orderData.total)
+    return
+  }
 
-  trackEvent('Purchase', {
-    content_ids: contentIds,
-    contents: contents,
-    value: orderData.total,
+  const items = orderData.items || []
+  const contentIds = items.length > 0 ? items.map(item => item.id) : []
+  const contents = items.length > 0 ? items.map(item => ({
+    id: item.id,
+    quantity: item.quantity || 1,
+    item_price: item.price || 0
+  })) : []
+
+  const purchaseData = {
+    value: parseFloat(orderData.total), // Garantir que é número
     currency: 'BRL',
-    num_items: orderData.items.reduce((sum, item) => sum + item.quantity, 0),
     order_id: orderData.orderId
-  })
+  }
+
+  // Adicionar content_ids e contents apenas se houver itens
+  if (contentIds.length > 0) {
+    purchaseData.content_ids = contentIds
+    purchaseData.contents = contents
+    purchaseData.num_items = items.reduce((sum, item) => sum + (item.quantity || 1), 0)
+  }
+
+  console.log('💰 Enviando Purchase event:', purchaseData)
+  trackEvent('Purchase', purchaseData)
 }
 
 export const trackSearch = (searchTerm) => {

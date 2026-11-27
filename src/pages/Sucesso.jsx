@@ -10,22 +10,26 @@ const Sucesso = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Disparar evento de conversão uma única vez
-    if (orderId && !sessionStorage.getItem(`purchase_tracked_${orderId}`)) {
-      sessionStorage.setItem(`purchase_tracked_${orderId}`, 'true')
-      trackPurchase({
-        orderId: orderId,
-        items: [],
-        total: 0
-      })
-      console.log('🎯 Conversão rastreada para pedido:', orderId)
-    }
-
-    // Buscar dados do pedido
+    // Buscar dados do pedido primeiro
     if (orderId) {
       fetchOrderData(orderId)
     }
   }, [orderId])
+
+  // Disparar evento de conversão após carregar os dados do pedido
+  useEffect(() => {
+    if (orderData && orderId && !sessionStorage.getItem(`purchase_tracked_${orderId}`)) {
+      sessionStorage.setItem(`purchase_tracked_${orderId}`, 'true')
+      
+      // Disparar com dados reais do pedido
+      trackPurchase({
+        orderId: orderId,
+        items: orderData.items || [],
+        total: orderData.total || 0
+      })
+      console.log('🎯 Conversão rastreada para pedido:', orderId, 'Total:', orderData.total)
+    }
+  }, [orderData, orderId])
 
   const fetchOrderData = async (id) => {
     try {
